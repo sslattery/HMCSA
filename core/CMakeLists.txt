@@ -1,6 +1,6 @@
 INCLUDE(TribitsSubPackageMacros)
 
-TRIBITS_SUBPACKAGE(Utils)
+TRIBITS_SUBPACKAGE(Core)
 
 ADD_SUBDIRECTORY(src)
 

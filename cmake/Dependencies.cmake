@@ -1,8 +1,5 @@
 SET(SUBPACKAGES_DIRS_CLASSIFICATIONS_OPTREQS
-  Utils            utils            SS  REQUIRED
-  Operators        operators        SS  REQUIRED
-  Solvers          solvers          SS  REQUIRED
-  Hmcsa            hmcsa            SS  REQUIRED
+  Core            core            SS  REQUIRED
   ) 
 
 SET(LIB_REQUIRED_DEP_PACKAGES)
