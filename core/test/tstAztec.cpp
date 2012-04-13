@@ -17,7 +17,6 @@
 #include <sstream>
 
 #include <Teuchos_UnitTestHarness.hpp>
-#include <Teuchos_ArrayRCP.hpp>
 
 #include <Epetra_SerialComm.h>
 #include <Epetra_Map.h>
@@ -28,109 +27,55 @@
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEUCHOS_UNIT_TEST( Epetra_Vector, epetra_vector_test)
+TEUCHOS_UNIT_TEST( AztecOO, gmres_test)
 {
     int error = 0;
 
-    Teuchos::ArrayRCP<double> data(10, 1.3);
+    std::vector<double> x_vector( 3, 0.0 );
     Epetra_SerialComm comm;
-    Epetra_Map map( (int) data.size(), 0, comm );
-    Epetra_Vector epetra_vector( View, map, data.get() );
+    Epetra_Map map( 3, 0, comm );
+    Epetra_Vector x( View, map, &x_vector[0] );
 
-    Teuchos::ArrayRCP<double>::const_iterator const_it;
-    for ( int i = 0; i < (int) data.size(); ++i )
+    std::vector<double> b_vector( 3 );
+    b_vector[0] = 10.0;
+    b_vector[1] = 1.0;
+    b_vector[2] = 1.0;
+    Epetra_Vector b( View, map, &b_vector[0] );
+
+    std::vector<double> A_matrix( 9 );
+    A_matrix[0] = 1.0;
+    A_matrix[1] = -0.3;
+    A_matrix[2] = -0.4;
+    A_matrix[3] = -0.2;
+    A_matrix[4] = 1.0;
+    A_matrix[5] = -0.4;
+    A_matrix[6] = -0.5;
+    A_matrix[7] = -0.4;
+    A_matrix[8] = 1.0;
+
+    std::vector<int> A_indices( 9 );
+    for ( int i = 0; i < 2; ++i )
     {
-	TEST_ASSERT( epetra_vector[i] == 1.3 );
+	A_indices[i] = i;
+	A_indices[i+3] = i;
+	A_indices[i+6] = i;
     }
 
-    std::vector<double> values( 4, 2.5 );
-    std::vector<int> indices( 4 );
-    indices[0] = 3;
-    indices[1] = 4;
-    indices[2] = 5;
-    indices[3] = 6;
-    error = epetra_vector.ReplaceGlobalValues( 4, 0, &values[0], &indices[0] );
-    TEST_ASSERT( error == 0 );
-    for ( int i = 3; i < 7; ++i )
-    {
-	TEST_ASSERT( epetra_vector[i] == 2.5 );
-	TEST_ASSERT( data[i] == 2.5 );
-    }
-
-    error = epetra_vector.SumIntoGlobalValues( 4, 0, &values[0], &indices[0] );
-    TEST_ASSERT( error == 0 );
-    for ( int i = 3; i < 7; ++i )
-    {
-	TEST_ASSERT( epetra_vector[i] == 5.0 );
-	TEST_ASSERT( data[i] == 5.0 );
-    }
-
-    error = epetra_vector.Scale( 2.0 );
-    TEST_ASSERT( error == 0 );
-    for ( int i = 0; i < 3; ++i )
-    {
-	TEST_ASSERT( epetra_vector[i] == 2.6 );
-	TEST_ASSERT( data[i] == 2.6 );
-	TEST_ASSERT( epetra_vector[i+7] == 2.6 );
-	TEST_ASSERT( data[i+7] == 2.6 );
-
-    }
-    for ( int i = 3; i < 7; ++i )
-    {
-	TEST_ASSERT( epetra_vector[i] == 10.0 );
-	TEST_ASSERT( data[i] == 10.0 );
-    }
-
-    double norm_2 = 0.0;
-    for ( int i = 0; i < (int) data.size(); ++i )
-    {
-	norm_2 += epetra_vector[i]*epetra_vector[i];
-    }
-    norm_2 = pow( norm_2, 0.5 );
-    double l2_norm = 0;
-    error = epetra_vector.Norm2( &l2_norm );
-    TEST_ASSERT( error == 0 );
-    TEST_ASSERT( l2_norm == norm_2 );
-
-
-    double inf_norm = 0;
-    error = epetra_vector.NormInf( &inf_norm );
-    TEST_ASSERT( error == 0 );
-    TEST_ASSERT( inf_norm == 10.0 );
-}
-
-TEUCHOS_UNIT_TEST( Epetra_CrsMatrix, epetra_crsmatrix_test)
-{
-    int error = 0;
-
-    int vector_size = 10;
-
-    Epetra_SerialComm comm;
-    Epetra_Map map( vector_size, 0, comm );
-
-    Teuchos::ArrayRCP<double> u_array( vector_size, 2.0 );
-    Epetra_Vector u( View, map, u_array.get() );
-
-    std::vector<int> entries_per_row( vector_size, 1 );
-    Epetra_CrsMatrix A( Copy, map, &entries_per_row[0] );
-    double diag_value = 2.0;
-    for ( int i = 0; i < vector_size; ++i )
-    {
-	error = A.InsertGlobalValues( i, 1, &diag_value, &i );
-	TEST_ASSERT( error == 0 );
-    }
+    std::vector<int> entries_per_row( 3, 3 );
+    Epetra_CrsMatrix A( View, map, &entries_per_row[0] );
+    A.InsertGlobalValues( 0, 1, &A_matrix[0], &A_indices[0] );
+    A.InsertGlobalValues( 0, 1, &A_matrix[1], &A_indices[1] );
+    A.InsertGlobalValues( 0, 1, &A_matrix[2], &A_indices[2] );
+    A.InsertGlobalValues( 1, 1, &A_matrix[3], &A_indices[3] );
+    A.InsertGlobalValues( 1, 1, &A_matrix[4], &A_indices[4] );
+    A.InsertGlobalValues( 1, 1, &A_matrix[5], &A_indices[5] );
+    A.InsertGlobalValues( 2, 1, &A_matrix[6], &A_indices[6] );
+    A.InsertGlobalValues( 2, 1, &A_matrix[7], &A_indices[7] );
+    A.InsertGlobalValues( 2, 1, &A_matrix[8], &A_indices[8] );
     error = A.FillComplete();
-    TEST_ASSERT( error == 0 );
+    TEST_ASSERT( error > 0 );
 
-    Teuchos::ArrayRCP<double> v_array( vector_size );
-    Epetra_Vector v( View, map, v_array.get() );
-    error = A.Apply( u, v );
-    TEST_ASSERT( error == 0 );
-    for ( int i = 0; i < vector_size; ++i )
-    {
-	TEST_ASSERT( v_array[i] == 4.0 );
-    }
-
+    
 }
 
 //---------------------------------------------------------------------------//
