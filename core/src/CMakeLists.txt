@@ -20,6 +20,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 APPEND_SET(HEADERS
+  AdjointMC.hpp
   DirectMC.hpp
   Exception.hpp
   )
@@ -27,6 +28,7 @@ APPEND_SET(HEADERS
 # Set sources
 
 APPEND_SET(SOURCES
+  AdjointMC.cpp
   DirectMC.cpp
   Exception.cpp
   )

@@ -5,9 +5,9 @@
 // version 3.0 of the License, or (at your option) any later version.
 //
 /*!
- * \file   mesh/test/tstDirectMC.cpp
+ * \file   mesh/test/tstAdjointMC.cpp
  * \author Stuart Slattery
- * \brief  Direct Monte Carlo solver unit tests.
+ * \brief  Adjoint Monte Carlo solver unit tests.
  */
 //---------------------------------------------------------------------------//
 
@@ -17,7 +17,7 @@
 #include <sstream>
 #include <ostream>
 
-#include "DirectMC.hpp"
+#include "AdjointMC.hpp"
 
 #include <Teuchos_UnitTestHarness.hpp>
 
@@ -33,7 +33,7 @@
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEUCHOS_UNIT_TEST( DirectMC, DirectMC_test)
+TEUCHOS_UNIT_TEST( AdjointMC, AdjointMC_test)
 {
     int problem_size = 6;
 
@@ -76,8 +76,8 @@ TEUCHOS_UNIT_TEST( DirectMC, DirectMC_test)
     Epetra_LinearProblem *linear_problem = 
 	new Epetra_LinearProblem( &A, &x, &b );
 
-    HMCSA::DirectMC direct_mc_solver( linear_problem );
-    direct_mc_solver.walk( 1000, 1.0e-8 );
+    HMCSA::AdjointMC adjoint_mc_solver( linear_problem );
+    adjoint_mc_solver.walk( 1000, 1.0e-8 );
 
     for (int i = 0; i < problem_size; ++i)
     {
@@ -91,7 +91,7 @@ TEUCHOS_UNIT_TEST( DirectMC, DirectMC_test)
     aztec_solver.Iterate( 100, 1.0e-8 );
 
     std::cout << std::endl;
-    std::cout << "Direct MC Solution" << std::endl;
+    std::cout << "Adjoint MC Solution" << std::endl;
     for (int i = 0; i < problem_size; ++i)
     {
 	std::cout << x_vector[i] << std::endl;
@@ -106,5 +106,5 @@ TEUCHOS_UNIT_TEST( DirectMC, DirectMC_test)
 }
 
 //---------------------------------------------------------------------------//
-//                        end of tstDirectMC.cpp
+//                        end of tstAdjointMC.cpp
 //---------------------------------------------------------------------------//

@@ -52,13 +52,13 @@ void DirectMC::walk( const int num_histories, const double weight_cutoff )
     bool cdf_inverted;
     std::vector<double> H_values( N );
     std::vector<int> H_indices( N );
-    int num_H;
+    int H_size;
     std::vector<double> P_values( N );
     std::vector<int> P_indices( N );
-    int num_P;
+    int size_P;
     std::vector<double> C_values( N );
     std::vector<int> C_indices( N );
-    int num_C;
+    int size_C;
     std::vector<int>::iterator P_it;
     std::vector<int>::iterator H_it;
     for ( int i = 0; i < N; ++i )
@@ -74,12 +74,12 @@ void DirectMC::walk( const int num_histories, const double weight_cutoff )
 
 		d_C.ExtractGlobalRowCopy( state, 
 					  N, 
-					  num_C, 
+					  size_C, 
 					  &C_values[0], 
 					  &C_indices[0] );
 		zeta = (double) rand() / RAND_MAX;
 		cdf_inverted = false;
-		for ( int j = 0; j < num_C; ++j )
+		for ( int j = 0; j < size_C; ++j )
 		{
 		    if ( zeta < C_values[j] && !cdf_inverted )
 		    {
@@ -90,13 +90,13 @@ void DirectMC::walk( const int num_histories, const double weight_cutoff )
 
 		d_P.ExtractGlobalRowCopy( state, 
 					  N, 
-					  num_P, 
+					  size_P, 
 					  &P_values[0], 
 					  &P_indices[0] );
 
 		d_H.ExtractGlobalRowCopy( state, 
 					  N, 
-					  num_H, 
+					  H_size, 
 					  &H_values[0], 
 					  &H_indices[0] );
 
@@ -222,16 +222,16 @@ Epetra_CrsMatrix DirectMC::buildC()
     double local_C = 0.0;
     std::vector<double> P_values( N );
     std::vector<int> P_indices( N );
-    int row_size = 0;
+    int size_P = 0;
     for ( int i = 0; i < N; ++i )
     {
 	d_P.ExtractGlobalRowCopy( i, 
 				  N, 
-				  row_size, 
+				  size_P, 
 				  &P_values[0], 
 				  &P_indices[0] );
 	local_C = 0.0;
-	for ( int j = 0; j < row_size; ++j )
+	for ( int j = 0; j < size_P; ++j )
 	{
 	    local_C += P_values[j];
 	    C.InsertGlobalValues( i, 1, &local_C, &P_indices[j] );
