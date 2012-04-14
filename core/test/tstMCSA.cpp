@@ -75,23 +75,17 @@ TEUCHOS_UNIT_TEST( MCSA, MCSA_test)
 
     Epetra_LinearProblem *linear_problem = 
 	new Epetra_LinearProblem( &A, &x, &b );
-
     HMCSA::MCSA mcsa_solver( linear_problem );
-    mcsa_solver.iterate( 10, 1.0e-12, 100, 1.0e-8 );
-
-    for (int i = 0; i < problem_size; ++i)
-    {
-	std::cout << x_vector[i] << std::endl;
-    }
+    mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
 
     Epetra_LinearProblem aztec_linear_problem( &A, &x_aztec, &b );
-
     AztecOO aztec_solver( aztec_linear_problem );
     aztec_solver.SetAztecOption( AZ_solver, AZ_gmres );
-    aztec_solver.Iterate( 1000, 1.0e-8 );
+    aztec_solver.Iterate( 100, 1.0e-8 );
 
     std::cout << std::endl;
     std::cout << "MCSA Solution" << std::endl;
+    std::cout << "ITERS " << mcsa_solver.getNumIters() << std::endl;
     for (int i = 0; i < problem_size; ++i)
     {
 	std::cout << x_vector[i] << std::endl;

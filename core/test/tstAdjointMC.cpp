@@ -79,11 +79,6 @@ TEUCHOS_UNIT_TEST( AdjointMC, AdjointMC_test)
     HMCSA::AdjointMC adjoint_mc_solver( linear_problem );
     adjoint_mc_solver.walk( 1000, 1.0e-8 );
 
-    for (int i = 0; i < problem_size; ++i)
-    {
-	std::cout << x_vector[i] << std::endl;
-    }
-
     Epetra_LinearProblem aztec_linear_problem( &A, &x_aztec, &b );
 
     AztecOO aztec_solver( aztec_linear_problem );

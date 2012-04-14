@@ -56,7 +56,7 @@ void MCSA::iterate( const int max_iters,
     double b_norm;
     b->NormInf( &b_norm );
     double conv_crit = b_norm*tolerance;
-    while ( residual_norm > conv_crit )
+    while ( residual_norm > conv_crit && d_num_iters < max_iters )
     {
 	H.Apply( *x, temp_vec );
 	for ( int i = 0; i < N; ++i )
