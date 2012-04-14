@@ -23,6 +23,7 @@ APPEND_SET(HEADERS
   AdjointMC.hpp
   DirectMC.hpp
   Exception.hpp
+  MCSA.hpp
   )
 
 # Set sources
@@ -31,6 +32,7 @@ APPEND_SET(SOURCES
   AdjointMC.cpp
   DirectMC.cpp
   Exception.cpp
+  MCSA.cpp
   )
 
 # Set addition headers and source based on package-specific

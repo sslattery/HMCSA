@@ -1,0 +1,136 @@
+//---------------------------------------------------------------------------//
+// \file MCSA.cpp
+// \author Stuart R. Slattery
+// \brief Monte Carlo Synthetic Acceleration solver declaration.
+//---------------------------------------------------------------------------//
+
+#include "MCSA.hpp"
+#include "AdjointMC.hpp"
+
+#include <Epetra_Map.h>
+#include <Epetra_Vector.h>
+
+namespace HMCSA
+{
+/*! 
+ * \brief Constructor.
+ */
+MCSA::MCSA( Epetra_LinearProblem *linear_problem )
+    : d_linear_problem( linear_problem )
+    , d_num_iters( 0 )
+{ /* ... */ }
+
+/*!
+ * \brief Destructor.
+ */
+MCSA::~MCSA()
+{ /* ... */ }
+ 
+/*!
+ * \brief Solve.
+ */
+void MCSA::iterate( const int max_iters,
+		    const double tolerance,
+		    const int num_histories,
+		    const double weight_cutoff )
+{
+    Epetra_CrsMatrix *A = 
+	dynamic_cast<Epetra_CrsMatrix*>( d_linear_problem->GetMatrix() );
+    Epetra_Vector *x = 
+	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetLHS() );
+    const Epetra_Vector *b = 
+	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
+    x->PutScalar( 0.0 );
+    Epetra_CrsMatrix H = buildH();
+    Epetra_Map row_map = A->RowMap();
+    Epetra_Vector delta_x( row_map );
+    Epetra_Vector residual( row_map );
+    Epetra_Vector temp_vec( row_map );
+    int N = A->NumGlobalRows();
+
+    Epetra_LinearProblem residual_problem( A, &delta_x, &residual );
+    AdjointMC mc_solver( &residual_problem );
+
+    d_num_iters = 0;
+    double residual_norm = 1.0;
+    double b_norm;
+    b->NormInf( &b_norm );
+    double conv_crit = b_norm*tolerance;
+    while ( residual_norm > conv_crit )
+    {
+	H.Apply( *x, temp_vec );
+	for ( int i = 0; i < N; ++i )
+	{
+	    (*x)[i] = temp_vec[i] + (*b)[i];
+	}
+
+	A->Apply( *x, temp_vec );
+	for ( int i = 0; i < N; ++i )
+	{
+	    residual[i] = (*b)[i] - temp_vec[i];
+	}
+	
+	mc_solver.walk( num_histories, weight_cutoff );
+
+	for ( int i = 0; i < N; ++i )
+	{
+	    (*x)[i] += delta_x[i];
+	}
+
+	residual.NormInf( &residual_norm );
+	++d_num_iters;
+    }
+}
+
+/*!
+ * \brief Build the iteration matrix.
+ */
+Epetra_CrsMatrix MCSA::buildH()
+{
+    const Epetra_CrsMatrix *A = 
+	dynamic_cast<Epetra_CrsMatrix*>( d_linear_problem->GetMatrix() );
+    Epetra_CrsMatrix H( Copy, A->RowMap(), A->GlobalMaxNumEntries() );
+    int N = A->NumGlobalRows();
+    std::vector<double> A_values( N );
+    std::vector<int> A_indices( N );
+    int A_size = 0;
+    double local_H;
+    bool found_diag = false;
+    for ( int i = 0; i < N; ++i )
+    {
+	A->ExtractGlobalRowCopy( i,
+				 N, 
+				 A_size, 
+				 &A_values[0], 
+				 &A_indices[0] );
+
+	for ( int j = 0; j < A_size; ++j )
+	{
+	    if ( i == A_indices[j] )
+	    {
+		local_H = 1.0 - A_values[j];
+		H.InsertGlobalValues( i, 1, &local_H, &A_indices[j] );
+		found_diag = true;
+	    }
+	    else
+	    {
+		local_H = -A_values[j];
+		H.InsertGlobalValues( i, 1, &local_H, &A_indices[j] );
+	    }
+	}
+	if ( !found_diag )
+	{
+	    local_H = 1.0;
+	    H.InsertGlobalValues( i, 1, &local_H, &i );
+	}
+    }
+    H.FillComplete();
+    return H;
+}
+
+} // end namespace HMCSA
+
+//---------------------------------------------------------------------------//
+// end MCSA.cpp
+//---------------------------------------------------------------------------//
+

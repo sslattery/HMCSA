@@ -40,6 +40,10 @@ class AdjointMC
     // Solve.
     void walk( const int num_histories, const double weight_cutoff );
 
+    // Return the iteration matrix.
+    const Epetra_CrsMatrix& getH() const
+    { return d_H; }
+
   private:
 
     // Build the iteration matrix.

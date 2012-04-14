@@ -17,7 +17,7 @@
 #include <sstream>
 #include <ostream>
 
-#include "AdjointMC.hpp"
+#include "MCSA.hpp"
 
 #include <Teuchos_UnitTestHarness.hpp>
 
@@ -33,7 +33,7 @@
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEUCHOS_UNIT_TEST( AdjointMC, AdjointMC_test)
+TEUCHOS_UNIT_TEST( MCSA, MCSA_test)
 {
     int problem_size = 6;
 
@@ -76,8 +76,8 @@ TEUCHOS_UNIT_TEST( AdjointMC, AdjointMC_test)
     Epetra_LinearProblem *linear_problem = 
 	new Epetra_LinearProblem( &A, &x, &b );
 
-    HMCSA::AdjointMC adjoint_mc_solver( linear_problem );
-    adjoint_mc_solver.walk( 1000, 1.0e-8 );
+    HMCSA::MCSA mcsa_solver( linear_problem );
+    mcsa_solver.iterate( 10, 1.0e-12, 100, 1.0e-8 );
 
     for (int i = 0; i < problem_size; ++i)
     {
@@ -91,7 +91,7 @@ TEUCHOS_UNIT_TEST( AdjointMC, AdjointMC_test)
     aztec_solver.Iterate( 1000, 1.0e-8 );
 
     std::cout << std::endl;
-    std::cout << "Adjoint MC Solution" << std::endl;
+    std::cout << "MCSA Solution" << std::endl;
     for (int i = 0; i < problem_size; ++i)
     {
 	std::cout << x_vector[i] << std::endl;
@@ -106,5 +106,5 @@ TEUCHOS_UNIT_TEST( AdjointMC, AdjointMC_test)
 }
 
 //---------------------------------------------------------------------------//
-//                        end of tstAdjointMC.cpp
+//                        end of tstMCSA.cpp
 //---------------------------------------------------------------------------//
