@@ -41,15 +41,16 @@ void MCSA::iterate( const int max_iters,
     const Epetra_Vector *b = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
     x->PutScalar( 0.0 );
-    Epetra_CrsMatrix H = buildH();
+
     Epetra_Map row_map = A->RowMap();
     Epetra_Vector delta_x( row_map );
     Epetra_Vector residual( row_map );
-    Epetra_Vector temp_vec( row_map );
-    int N = A->NumGlobalRows();
-
     Epetra_LinearProblem residual_problem( A, &delta_x, &residual );
     AdjointMC mc_solver( &residual_problem );
+
+    Epetra_CrsMatrix H = mc_solver.getH();
+    Epetra_Vector temp_vec( row_map );
+    int N = A->NumGlobalRows();
 
     d_num_iters = 0;
     double residual_norm = 1.0;
@@ -80,52 +81,6 @@ void MCSA::iterate( const int max_iters,
 	residual.NormInf( &residual_norm );
 	++d_num_iters;
     }
-}
-
-/*!
- * \brief Build the iteration matrix.
- */
-Epetra_CrsMatrix MCSA::buildH()
-{
-    const Epetra_CrsMatrix *A = 
-	dynamic_cast<Epetra_CrsMatrix*>( d_linear_problem->GetMatrix() );
-    Epetra_CrsMatrix H( Copy, A->RowMap(), A->GlobalMaxNumEntries() );
-    int N = A->NumGlobalRows();
-    std::vector<double> A_values( N );
-    std::vector<int> A_indices( N );
-    int A_size = 0;
-    double local_H;
-    bool found_diag = false;
-    for ( int i = 0; i < N; ++i )
-    {
-	A->ExtractGlobalRowCopy( i,
-				 N, 
-				 A_size, 
-				 &A_values[0], 
-				 &A_indices[0] );
-
-	for ( int j = 0; j < A_size; ++j )
-	{
-	    if ( i == A_indices[j] )
-	    {
-		local_H = 1.0 - A_values[j];
-		H.InsertGlobalValues( i, 1, &local_H, &A_indices[j] );
-		found_diag = true;
-	    }
-	    else
-	    {
-		local_H = -A_values[j];
-		H.InsertGlobalValues( i, 1, &local_H, &A_indices[j] );
-	    }
-	}
-	if ( !found_diag )
-	{
-	    local_H = 1.0;
-	    H.InsertGlobalValues( i, 1, &local_H, &i );
-	}
-    }
-    H.FillComplete();
-    return H;
 }
 
 } // end namespace HMCSA

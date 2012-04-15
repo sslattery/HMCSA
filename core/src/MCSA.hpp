@@ -40,11 +40,6 @@ class MCSA
     // Get the iteration count from the last solve.
     int getNumIters() const
     { return d_num_iters; }
-
-  private:
-
-    // Build the iteration matrix.
-    Epetra_CrsMatrix buildH();
 };
 
 } // end namespace HMCSA
