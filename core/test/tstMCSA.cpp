@@ -5,7 +5,7 @@
 // version 3.0 of the License, or (at your option) any later version.
 //
 /*!
- * \file   mesh/test/tstAdjointMC.cpp
+ * \file   mesh/test/tstMCSA.cpp
  * \author Stuart Slattery
  * \brief  Adjoint Monte Carlo solver unit tests.
  */

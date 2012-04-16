@@ -47,7 +47,6 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     Epetra_Vector b_cdf = *b;
     int N = x->GlobalLength();
 
-    // Random walk.
     int state;
     int new_state;
     int init_state;
@@ -68,6 +67,8 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     int C_size;
     std::vector<int>::iterator Q_it;
     std::vector<int>::iterator H_it;
+
+    // Build source cdf.
     double b_norm = b_cdf[0];
     for ( int i = 1; i < N; ++i )
     {
@@ -78,7 +79,8 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     {
 	b_cdf[i] /= b_norm;
     }
-
+    
+    // Do random walks for specified number of histories.
     for ( int n = 0; n < num_histories; ++n )
     {
 	zeta = (double) rand() / RAND_MAX;
@@ -92,6 +94,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 	    }
 	}
 
+	// Random walk.
 	weight = b_norm / (*b)[init_state];
 	relative_cutoff = weight_cutoff*weight;
 	state = init_state;
@@ -115,7 +118,6 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 		    cdf_inverted = true;
 		}
 	    }
-
 	    d_Q.ExtractGlobalRowCopy( state, 
 				      N, 
 				      Q_size, 

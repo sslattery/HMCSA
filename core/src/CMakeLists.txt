@@ -24,6 +24,7 @@ APPEND_SET(HEADERS
   DirectMC.hpp
   Exception.hpp
   MCSA.hpp
+  SequentialMC.hpp
   )
 
 # Set sources
@@ -33,6 +34,7 @@ APPEND_SET(SOURCES
   DirectMC.cpp
   Exception.cpp
   MCSA.cpp
+  SequentialMC.cpp
   )
 
 # Set addition headers and source based on package-specific

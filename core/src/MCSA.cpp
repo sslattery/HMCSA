@@ -40,7 +40,6 @@ void MCSA::iterate( const int max_iters,
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetLHS() );
     const Epetra_Vector *b = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
-    x->PutScalar( 0.0 );
 
     Epetra_Map row_map = A->RowMap();
     Epetra_Vector delta_x( row_map );
