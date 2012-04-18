@@ -6,9 +6,8 @@
 
 #include <iostream>
 
-#include "LinearOperator.hpp"
-#include "LinearSolver.hpp"
-#include "SolverFactory.hpp"
+#include "HelmholtzOperator.hpp"
+#include "MCSA.hpp"
 #include "TimeIntegrator.hpp"
 #include "VtkWriter.hpp"
 
@@ -36,9 +35,9 @@ int main( int argc, void** argv )
     parameter_list.set( "Final Time", 0.01 );
 
     // Dirichlet Conditions.
-    parameter_list.set( "X Min Boundary", 1.0 );
+    parameter_list.set( "X Min Boundary", 0.0 );
     parameter_list.set( "X Max Boundary", 1.0 );
-    parameter_list.set( "Y_Min Boundary", 1.0 );
+    parameter_list.set( "Y_Min Boundary", 0.0 );
     parameter_list.set( "Y_Max Boundary", 1.0 );
 
     // Initial Conditions.
@@ -63,15 +62,13 @@ int main( int argc, void** argv )
     Epetra_Vector b( View, map, b.get() );
     
     // Create the operator.
-    HMCSA::LinearOperator A( parameter_list );
+    HMCSA::HelmholtzOperator A( parameter_list );
 
     // Create the linear problem.
     Epetra_LinearProblem linear_problem( A->getCrsMatrix(), u, b );
 
     // Create a solver.
-    SolverFactory solver_factory( parameter_list );
-    Teuchos::RCP<HMSCA::LinearSolver> linear_solver = 
-	solver_factory.create( linear_problem );
+    HMCSA::MCSA linear_solver;
 
     // Create a time integrator.
     HMCSA::TimeIntegrator time_integrator( parameter_list, 

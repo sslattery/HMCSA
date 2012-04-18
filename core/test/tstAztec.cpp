@@ -7,7 +7,7 @@
 /*!
  * \file   mesh/test/tstAztec.cpp
  * \author Stuart Slattery
- * \brief  Epetra class unit tests.
+ * \brief  Aztec class unit tests.
  */
 //---------------------------------------------------------------------------//
 

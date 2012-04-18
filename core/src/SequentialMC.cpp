@@ -61,9 +61,8 @@ void SequentialMC::iterate( const int max_iters,
 	for ( int i = 0; i < N; ++i )
 	{
 	    residual[i] = (*b)[i] - temp_vec[i];
-	    std::cout << residual[i] << std::endl;
 	}
-	std::cout << "---" << std::endl;
+
 	mc_solver.walk( num_histories, weight_cutoff );
 
 	for ( int i = 0; i < N; ++i )

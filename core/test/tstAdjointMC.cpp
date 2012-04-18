@@ -85,19 +85,18 @@ TEUCHOS_UNIT_TEST( AdjointMC, AdjointMC_test)
     aztec_solver.SetAztecOption( AZ_solver, AZ_gmres );
     aztec_solver.Iterate( 1000, 1.0e-8 );
 
-    std::cout << std::endl;
-    std::cout << "Adjoint MC Solution" << std::endl;
+    std::vector<double> error_vector( problem_size );
+    Epetra_Vector error( View, map, &error_vector[0] );
+
     for (int i = 0; i < problem_size; ++i)
     {
-	std::cout << x_vector[i] << std::endl;
+	error[i] = x[i] - x_aztec[i];
     }
-    
-    std::cout << std::endl;
-    std::cout << "Aztec Solution" << std::endl;
-    for (int i = 0; i < problem_size; ++i)
-    {
-	std::cout << x_aztec_vector[i] << std::endl;
-    }
+    double error_norm;
+    error.Norm2( &error_norm );
+    std::cout << std::endl << 
+	"Aztec GMRES vs. Adjoint Monte Carlo absolute error L2 norm: " << 
+	error_norm << std::endl;    
 }
 
 //---------------------------------------------------------------------------//

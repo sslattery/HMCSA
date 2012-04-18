@@ -49,6 +49,9 @@ TEUCHOS_UNIT_TEST( DirectMC, DirectMC_test)
     std::vector<double> b_vector( problem_size, 0.4 );
     Epetra_Vector b( View, map, &b_vector[0] );
 
+    std::vector<double> error_vector( problem_size );
+    Epetra_Vector error( View, map, &error_vector[0] );
+
     Epetra_CrsMatrix A( Copy, map, problem_size );
     double lower_diag = -0.4;
     double diag = 1.0;
@@ -90,19 +93,15 @@ TEUCHOS_UNIT_TEST( DirectMC, DirectMC_test)
     aztec_solver.SetAztecOption( AZ_solver, AZ_gmres );
     aztec_solver.Iterate( 100, 1.0e-8 );
 
-    std::cout << std::endl;
-    std::cout << "Direct MC Solution" << std::endl;
     for (int i = 0; i < problem_size; ++i)
     {
-	std::cout << x_vector[i] << std::endl;
+	error[i] = x[i] - x_aztec[i];
     }
-    
-    std::cout << std::endl;
-    std::cout << "Aztec Solution" << std::endl;
-    for (int i = 0; i < problem_size; ++i)
-    {
-	std::cout << x_aztec_vector[i] << std::endl;
-    }
+    double error_norm;
+    error.Norm2( &error_norm );
+    std::cout << std::endl << 
+	"Aztec GMRES vs. Direct Monte Carlo absolute error L2 norm: " << 
+	error_norm << std::endl;    
 }
 
 //---------------------------------------------------------------------------//

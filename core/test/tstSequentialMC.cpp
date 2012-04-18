@@ -5,7 +5,7 @@
 // version 3.0 of the License, or (at your option) any later version.
 //
 /*!
- * \file   mesh/test/tstMCSA.cpp
+ * \file   mesh/test/tstSequentialMC.cpp
  * \author Stuart Slattery
  * \brief  Adjoint Monte Carlo solver unit tests.
  */
@@ -17,7 +17,7 @@
 #include <sstream>
 #include <ostream>
 
-#include "MCSA.hpp"
+#include "SequentialMC.hpp"
 
 #include <Teuchos_UnitTestHarness.hpp>
 
@@ -33,7 +33,7 @@
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEUCHOS_UNIT_TEST( MCSA, MCSA_test)
+TEUCHOS_UNIT_TEST( SequentialMC, SequentialMC_test)
 {
     int problem_size = 6;
 
@@ -75,13 +75,28 @@ TEUCHOS_UNIT_TEST( MCSA, MCSA_test)
 
     Epetra_LinearProblem *linear_problem = 
 	new Epetra_LinearProblem( &A, &x, &b );
-    HMCSA::MCSA mcsa_solver( linear_problem );
-    mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
+    HMCSA::SequentialMC sequential_solver( linear_problem );
+    sequential_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
 
     Epetra_LinearProblem aztec_linear_problem( &A, &x_aztec, &b );
     AztecOO aztec_solver( aztec_linear_problem );
     aztec_solver.SetAztecOption( AZ_solver, AZ_gmres );
     aztec_solver.Iterate( 100, 1.0e-8 );
+
+    std::cout << std::endl;
+    std::cout << "SequentialMC Solution" << std::endl;
+    std::cout << "ITERS " << sequential_solver.getNumIters() << std::endl;
+    for (int i = 0; i < problem_size; ++i)
+    {
+	std::cout << x_vector[i] << std::endl;
+    }
+    
+    std::cout << std::endl;
+    std::cout << "Aztec Solution" << std::endl;
+    for (int i = 0; i < problem_size; ++i)
+    {
+	std::cout << x_aztec_vector[i] << std::endl;
+    }
 
     std::vector<double> error_vector( problem_size );
     Epetra_Vector error( View, map, &error_vector[0] );
@@ -93,10 +108,10 @@ TEUCHOS_UNIT_TEST( MCSA, MCSA_test)
     double error_norm;
     error.Norm2( &error_norm );
     std::cout << std::endl << 
-	"Aztec GMRES vs. MCSA absolute error L2 norm: " << 
+	"Aztec GMRES vs. Sequential Monte Carlo absolute error L2 norm: " << 
 	error_norm << std::endl;    
 }
 
 //---------------------------------------------------------------------------//
-//                        end of tstMCSA.cpp
+//                        end of tstSequentialMC.cpp
 //---------------------------------------------------------------------------//

@@ -259,6 +259,7 @@ Epetra_CrsMatrix AdjointMC::buildC()
 				  size_Q, 
 				  &Q_values[0], 
 				  &Q_indices[0] );
+
 	local_C = 0.0;
 	for ( int j = 0; j < size_Q; ++j )
 	{
