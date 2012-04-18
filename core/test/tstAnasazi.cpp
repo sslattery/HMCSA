@@ -1,9 +1,4 @@
-//----------------------------------*-C++-*----------------------------------//
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3.0 of the License, or (at your option) any later version.
-//
+//---------------------------------------------------------------------------//
 /*!
  * \file   mesh/test/tstAnasazi.cpp
  * \author Stuart Slattery
@@ -39,13 +34,14 @@
 
 TEUCHOS_UNIT_TEST( Anasazi, arnoldi_test)
 {
-    int problem_size = 5;
+    int problem_size = 10;
 
     Epetra_SerialComm comm;
     Epetra_Map map( problem_size, 0, comm );
 
     // Build A.
-    Epetra_CrsMatrix A( Copy, map, problem_size );
+    Teuchos::RCP<Epetra_CrsMatrix> A = 
+	Teuchos::rcp( new Epetra_CrsMatrix( Copy, map, problem_size ) );
     double lower_diag = -1.0;
     double diag = 2.0;
     double upper_diag = -1.0;
@@ -54,27 +50,27 @@ TEUCHOS_UNIT_TEST( Anasazi, arnoldi_test)
     int upper_row = 0;
     for ( int i = 0; i < problem_size; ++i )
     {
-	global_row = A.GRID(i);
+	global_row = A->GRID(i);
 	lower_row = i-1;
 	upper_row = i+1;
 	if ( lower_row > -1 )
 	{
-	    A.InsertGlobalValues( global_row, 1, &lower_diag, &lower_row );
+	    A->InsertGlobalValues( global_row, 1, &lower_diag, &lower_row );
 	}
-	A.InsertGlobalValues( global_row, 1, &diag, &global_row );
+	A->InsertGlobalValues( global_row, 1, &diag, &global_row );
 	if ( upper_row < problem_size )
 	{
-	    A.InsertGlobalValues( global_row, 1, &upper_diag, &upper_row );
+	    A->InsertGlobalValues( global_row, 1, &upper_diag, &upper_row );
 	}
     }
-    A.FillComplete();
+    A->FillComplete();
 
     // Block Davidson setup.
     typedef Epetra_MultiVector MV;
     typedef Epetra_Operator OP;
     typedef Anasazi::MultiVecTraits<double, Epetra_MultiVector> MVT;
 
-    const int nev = problem_size;
+    const int nev = 4;
     const int block_size = 5;
     const int num_blocks = 8;
     const int max_restarts = 100;
@@ -104,6 +100,10 @@ TEUCHOS_UNIT_TEST( Anasazi, arnoldi_test)
     // Set the number of eigenvalues requested.
     MyProblem->setNEV( nev );
 
+    // Finalize eigenproblem.
+    bool boolret = MyProblem->setProblem();
+    TEST_ASSERT( boolret );
+
     // Create the solver manager
     Anasazi::BlockDavidsonSolMgr<double, MV, OP> MySolverMan(MyProblem, 
 							     solver_params);
@@ -118,7 +118,8 @@ TEUCHOS_UNIT_TEST( Anasazi, arnoldi_test)
 
     for( int i = 0; i < (int) evals.size(); ++i )
     {
-	std::cout << evals[i] << std::endl;
+	std::cout << evals[i].realpart << " "
+		  << evals[i].realpart << std::endl;
     }
 }
 

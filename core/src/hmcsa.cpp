@@ -6,9 +6,10 @@
 
 #include <iostream>
 
-#include "HelmholtzOperator.hpp"
+#include "DiffusionOperator.hpp"
 #include "MCSA.hpp"
 #include "TimeIntegrator.hpp"
+#include "OperatorTools.hpp"
 #include "VtkWriter.hpp"
 
 #include <Teuchos_RCP.hpp>
@@ -62,10 +63,14 @@ int main( int argc, void** argv )
     Epetra_Vector b( View, map, b.get() );
     
     // Create the operator.
-    HMCSA::HelmholtzOperator A( parameter_list );
+    HMCSA::DiffusionOperator A( parameter_list );
 
     // Create the linear problem.
-    Epetra_LinearProblem linear_problem( A->getCrsMatrix(), u, b );
+    Epetra_LinearProblem linear_problem( A.getCrsMatrix(), u, b );
+
+    // Compute the spectral radius of the operator.
+    double spectral_radius = 
+	HMCSA::OperatorTools::spectralRadius( A.getCrsMatrix() );
 
     // Create a solver.
     HMCSA::MCSA linear_solver;
