@@ -24,7 +24,7 @@
 
 #include "AnasaziMultiVecTraits.hpp"
 #include "AnasaziBasicEigenproblem.hpp"
-#include "AnasaziBlockDavidsonSolMgr.hpp"
+#include "AnasaziBlockKrylovSchurSolMgr.hpp"
 #include "AnasaziBasicOutputManager.hpp"
 #include "AnasaziEpetraAdapter.hpp"
 
@@ -32,7 +32,7 @@
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEUCHOS_UNIT_TEST( Anasazi, arnoldi_test)
+TEUCHOS_UNIT_TEST( Anasazi, block_krylov_schur_test)
 {
     int problem_size = 10;
 
@@ -65,14 +65,13 @@ TEUCHOS_UNIT_TEST( Anasazi, arnoldi_test)
     }
     A->FillComplete();
 
-    // Block Davidson setup.
+    // Block KrylovSchur setup.
     typedef Epetra_MultiVector MV;
     typedef Epetra_Operator OP;
-    typedef Anasazi::MultiVecTraits<double, Epetra_MultiVector> MVT;
 
-    const int nev = 4;
-    const int block_size = 5;
-    const int num_blocks = 8;
+    const int nev = 1;
+    const int block_size = 2;
+    const int num_blocks = 3;
     const int max_restarts = 100;
     const double tol = 1.0e-8;
 
@@ -83,9 +82,6 @@ TEUCHOS_UNIT_TEST( Anasazi, arnoldi_test)
     solver_params.set( "Maximum Restarts", max_restarts );
     solver_params.set( "Convergence Tolerance", tol );
 
-    std::vector<double> x_vector( problem_size );
-    Epetra_Vector x( View, map, &x_vector[0] );
-
     Teuchos::RCP<Epetra_MultiVector> ivec 
 	= Teuchos::rcp( new Epetra_MultiVector(map, block_size) );
     ivec->Random();
@@ -93,9 +89,6 @@ TEUCHOS_UNIT_TEST( Anasazi, arnoldi_test)
     // Create the eigenproblem.
     Teuchos::RCP<Anasazi::BasicEigenproblem<double, MV, OP> > MyProblem =
 	Teuchos::rcp( new Anasazi::BasicEigenproblem<double, MV, OP>(A, ivec) );
-
-    // Inform the eigenproblem that the operator A is symmetric
-    MyProblem->setHermitian(true);
 
     // Set the number of eigenvalues requested.
     MyProblem->setNEV( nev );
@@ -105,7 +98,7 @@ TEUCHOS_UNIT_TEST( Anasazi, arnoldi_test)
     TEST_ASSERT( boolret );
 
     // Create the solver manager
-    Anasazi::BlockDavidsonSolMgr<double, MV, OP> MySolverMan(MyProblem, 
+    Anasazi::BlockKrylovSchurSolMgr<double, MV, OP> MySolverMan(MyProblem, 
 							     solver_params);
 
     // Solve the problem
@@ -116,10 +109,12 @@ TEUCHOS_UNIT_TEST( Anasazi, arnoldi_test)
     std::vector<Anasazi::Value<double> > evals = sol.Evals;
     Teuchos::RCP<MV> evecs = sol.Evecs;
 
+    std::cout << "NUM EIGV " << evals.size() << std::endl;
     for( int i = 0; i < (int) evals.size(); ++i )
     {
-	std::cout << evals[i].realpart << " "
-		  << evals[i].realpart << std::endl;
+	std::cout << "EIGVAL " << i << " " 
+		  << evals[i].realpart << " "
+		  << evals[i].imagpart << std::endl;
     }
 }
 

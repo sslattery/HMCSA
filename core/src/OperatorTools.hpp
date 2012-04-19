@@ -9,7 +9,9 @@
 
 #include <vector>
 
-#include <Epetra_Operator.hpp>
+#include <Teuchos_RCP.hpp>
+
+#include <Epetra_Operator.h>
 
 namespace HMCSA
 {
@@ -17,14 +19,11 @@ namespace HMCSA
 namespace OperatorTools
 {
 
-// Compute the Eigenvalues of an operator.
-std::vector<double> eigenvalues( const Epetra_Operator& operator );
-
 // Compute the spectral radius of an operator.
-double spectralRadius( const Epetra_Operator& operator );
+double spectralRadius( const Teuchos::RCP<Epetra_Operator>& matrix );
 
 // Compute the stiffness ratio of the operator.
-double stiffnessRatio( const Epetra_Operator& operator );
+double stiffnessRatio( const Teuchos::RCP<Epetra_Operator>& matrix );
 
 } // end namespace OperatorTools
 

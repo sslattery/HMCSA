@@ -18,8 +18,10 @@
 #include <ostream>
 
 #include "MCSA.hpp"
+#include "OperatorTools.hpp"
 
 #include <Teuchos_UnitTestHarness.hpp>
+#include <Teuchos_RCP.hpp>
 
 #include <Epetra_SerialComm.h>
 #include <Epetra_Map.h>
@@ -35,7 +37,7 @@
 
 TEUCHOS_UNIT_TEST( MCSA, MCSA_test)
 {
-    int problem_size = 6;
+    int problem_size = 16;
 
     Epetra_SerialComm comm;
     Epetra_Map map( problem_size, 0, comm );
@@ -49,43 +51,47 @@ TEUCHOS_UNIT_TEST( MCSA, MCSA_test)
     std::vector<double> b_vector( problem_size, 0.4 );
     Epetra_Vector b( View, map, &b_vector[0] );
 
-    Epetra_CrsMatrix A( Copy, map, problem_size );
-    double lower_diag = -0.4;
-    double diag = 1.0;
-    double upper_diag = -0.4;
+    Teuchos::RCP<Epetra_CrsMatrix> A = 
+	Teuchos::rcp( new Epetra_CrsMatrix( Copy, map, problem_size ) );
+    double lower_diag = -0.1;
+    double diag = 0.6;
+    double upper_diag = -0.1;
     int global_row = 0;
     int lower_row = 0;
     int upper_row = 0;
     for ( int i = 0; i < problem_size; ++i )
     {
-	global_row = A.GRID(i);
+	global_row = A->GRID(i);
 	lower_row = i-1;
 	upper_row = i+1;
 	if ( lower_row > -1 )
 	{
-	    A.InsertGlobalValues( global_row, 1, &lower_diag, &lower_row );
+	    A->InsertGlobalValues( global_row, 1, &lower_diag, &lower_row );
 	}
-	A.InsertGlobalValues( global_row, 1, &diag, &global_row );
+	A->InsertGlobalValues( global_row, 1, &diag, &global_row );
 	if ( upper_row < problem_size )
 	{
-	    A.InsertGlobalValues( global_row, 1, &upper_diag, &upper_row );
+	    A->InsertGlobalValues( global_row, 1, &upper_diag, &upper_row );
 	}
     }
-    A.FillComplete();
+    A->FillComplete();
+
+    double spec_rad_A = HMCSA::OperatorTools::spectralRadius( A );
+    std::cout << std::endl <<
+	"Operator spectral radius: " << spec_rad_A << std::endl;
 
     Epetra_LinearProblem *linear_problem = 
-	new Epetra_LinearProblem( &A, &x, &b );
+	new Epetra_LinearProblem( A.getRawPtr(), &x, &b );
     HMCSA::MCSA mcsa_solver( linear_problem );
     mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
 
-    Epetra_LinearProblem aztec_linear_problem( &A, &x_aztec, &b );
+    Epetra_LinearProblem aztec_linear_problem( A.getRawPtr(), &x_aztec, &b );
     AztecOO aztec_solver( aztec_linear_problem );
     aztec_solver.SetAztecOption( AZ_solver, AZ_gmres );
     aztec_solver.Iterate( 100, 1.0e-8 );
 
     std::vector<double> error_vector( problem_size );
     Epetra_Vector error( View, map, &error_vector[0] );
-
     for (int i = 0; i < problem_size; ++i)
     {
 	error[i] = x[i] - x_aztec[i];

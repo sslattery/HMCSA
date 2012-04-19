@@ -24,6 +24,7 @@ APPEND_SET(HEADERS
   DirectMC.hpp
   Exception.hpp
   MCSA.hpp
+  OperatorTools.hpp
   SequentialMC.hpp
   )
 
@@ -34,6 +35,7 @@ APPEND_SET(SOURCES
   DirectMC.cpp
   Exception.cpp
   MCSA.cpp
+  OperatorTools.cpp
   SequentialMC.cpp
   )
 
