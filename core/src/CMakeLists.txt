@@ -21,17 +21,20 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 APPEND_SET(HEADERS
   AdjointMC.hpp
+  DiffusionOperator.hpp
   DirectMC.hpp
   Exception.hpp
   MCSA.hpp
   OperatorTools.hpp
   SequentialMC.hpp
+  Types.hpp
   )
 
 # Set sources
 
 APPEND_SET(SOURCES
   AdjointMC.cpp
+  DiffusionOperator.cpp
   DirectMC.cpp
   Exception.cpp
   MCSA.cpp
