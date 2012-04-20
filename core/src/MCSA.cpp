@@ -51,7 +51,6 @@ void MCSA::iterate( const int max_iters,
     Epetra_CrsMatrix H = mc_solver.getH();
     Epetra_Vector temp_vec( row_map );
     int N = A->NumGlobalRows();
-
     d_num_iters = 0;
     double residual_norm = 1.0;
     double b_norm;

@@ -79,7 +79,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     {
 	b_cdf[i] /= b_norm;
     }
-    
+
     // Do random walks for specified number of histories.
     for ( int n = 0; n < num_histories; ++n )
     {

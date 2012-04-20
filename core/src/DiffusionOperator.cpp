@@ -78,7 +78,7 @@ void DiffusionOperator::build_diffusion_operator( const int num_x,
     int idx_jplus;
     double one = 1.0;
 
-    // Min X boundary.
+    // Min X boundary Dirichlet.
     for ( int j = 1; j < num_y-1; ++j )
     {
 	int i = 0;
@@ -86,7 +86,7 @@ void DiffusionOperator::build_diffusion_operator( const int num_x,
 	d_matrix->InsertGlobalValues( idx, 1, &one, &idx );
     }
 
-    // Max X boundary.
+    // Max X boundary Dirichlet.
     for ( int j = 1; j < num_y-1; ++j )
     {
 	int i = num_x-1;
@@ -94,7 +94,7 @@ void DiffusionOperator::build_diffusion_operator( const int num_x,
 	d_matrix->InsertGlobalValues( idx, 1, &one, &idx );
     }
 
-    // Min Y boundary.
+    // Min Y boundary Dirichlet.
     for ( int i = 0; i < num_x; ++i )
     {
 	int j = 0;
@@ -102,8 +102,8 @@ void DiffusionOperator::build_diffusion_operator( const int num_x,
 	d_matrix->InsertGlobalValues( idx, 1, &one, &idx );
     }
 
-    // Max Y boundary.
-    for ( int i = 0; i < num_x-1; ++i )
+    // Max Y boundary Dirichlet.
+    for ( int i = 0; i < num_x; ++i )
     {
 	int j = num_y-1;
 	idx = i + j*num_x;
