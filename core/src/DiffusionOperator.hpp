@@ -9,6 +9,8 @@
 
 #include <cstdlib>
 
+#include <Teuchos_RCP.hpp>
+
 #include <Epetra_CrsMatrix.h>
 
 namespace HMCSA
@@ -43,7 +45,7 @@ class DiffusionOperator
     double d_y_max_value;
 
     // Operator.
-    Epetra_CrsMatrix d_matrix;
+    Teuchos::RCP<Epetra_CrsMatrix> d_matrix;
 
   public:
 
@@ -56,20 +58,27 @@ class DiffusionOperator
 		       const double x_max_value,
 		       const double y_min_value,
 		       const double y_max_value,
-		       const int size_x,
-		       const int size_y );
+		       const int num_x,
+		       const int num_y,
+		       const double dx,
+		       const double dy,
+		       const double dt );
 
     // Destructor.
     ~DiffusionOperator();
 
     // Get the operator.
-    const CrsMatrix& getCrsMatrix() const
-    { return d_matrix };
+    const Teuchos::RCP<Epetra_CrsMatrix>& getCrsMatrix() const
+    { return d_matrix; }
 
   private:
 
     // Build the diffusion operator.
-    CrsMatrix build_diffusion_operator( const int size_x, const int size_y );
+    void build_diffusion_operator( const int num_x, 
+				   const int num_y,
+				   const double dx,
+				   const double dy,
+				   const double dt );
 };
 
 } // end namespace HMCSA

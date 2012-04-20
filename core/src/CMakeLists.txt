@@ -24,10 +24,10 @@ APPEND_SET(HEADERS
   DiffusionOperator.hpp
   DirectMC.hpp
   Exception.hpp
+  HMCSATypes.hpp
   MCSA.hpp
   OperatorTools.hpp
   SequentialMC.hpp
-  Types.hpp
   )
 
 # Set sources
