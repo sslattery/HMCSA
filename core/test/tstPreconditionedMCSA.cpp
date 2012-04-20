@@ -5,7 +5,7 @@
 // version 3.0 of the License, or (at your option) any later version.
 //
 /*!
- * \file   mesh/test/tstSequentialMC.cpp
+ * \file   mesh/test/tstMCSA.cpp
  * \author Stuart Slattery
  * \brief  Adjoint Monte Carlo solver unit tests.
  */
@@ -17,10 +17,12 @@
 #include <sstream>
 #include <ostream>
 
-#include "SequentialMC.hpp"
+#include "MCSA.hpp"
 #include "OperatorTools.hpp"
+#include "JacobiPreconditioner.hpp"
 
 #include <Teuchos_UnitTestHarness.hpp>
+#include <Teuchos_RCP.hpp>
 
 #include <Epetra_SerialComm.h>
 #include <Epetra_Map.h>
@@ -34,7 +36,7 @@
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEUCHOS_UNIT_TEST( SequentialMC, SequentialMC_test)
+TEUCHOS_UNIT_TEST( MCSA, MCSA_test)
 {
     int problem_size = 16;
 
@@ -53,7 +55,7 @@ TEUCHOS_UNIT_TEST( SequentialMC, SequentialMC_test)
     Teuchos::RCP<Epetra_CrsMatrix> A = 
 	Teuchos::rcp( new Epetra_CrsMatrix( Copy, map, problem_size ) );
     double lower_diag = -0.1;
-    double diag = 0.6;
+    double diag = 2.4;
     double upper_diag = -0.1;
     int global_row = 0;
     int lower_row = 0;
@@ -81,8 +83,13 @@ TEUCHOS_UNIT_TEST( SequentialMC, SequentialMC_test)
 
     Teuchos::RCP<Epetra_LinearProblem> linear_problem = Teuchos::rcp(
 	new Epetra_LinearProblem( A.getRawPtr(), &x, &b ) );
-    HMCSA::SequentialMC sequential_solver( linear_problem );
-    sequential_solver.iterate( 100, 1.0e-8, 1000, 1.0e-8 );
+
+    HMCSA::JacobiPreconditioner preconditioner;
+    preconditioner.precondition( linear_problem );
+
+    HMCSA::MCSA mcsa_solver( linear_problem );
+    mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
+    std::cout << "MCSA ITERS: " << mcsa_solver.getNumIters() << std::endl;
 
     Epetra_LinearProblem aztec_linear_problem( A.getRawPtr(), &x_aztec, &b );
     AztecOO aztec_solver( aztec_linear_problem );
@@ -98,10 +105,10 @@ TEUCHOS_UNIT_TEST( SequentialMC, SequentialMC_test)
     double error_norm;
     error.Norm2( &error_norm );
     std::cout << std::endl << 
-	"Aztec GMRES vs. Sequential Monte Carlo absolute error L2 norm: " << 
+	"Aztec GMRES vs. MCSA absolute error L2 norm: " << 
 	error_norm << std::endl;    
 }
 
 //---------------------------------------------------------------------------//
-//                        end of tstSequentialMC.cpp
+//                        end of tstMCSA.cpp
 //---------------------------------------------------------------------------//

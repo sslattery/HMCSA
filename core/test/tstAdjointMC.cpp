@@ -20,6 +20,7 @@
 #include "AdjointMC.hpp"
 
 #include <Teuchos_UnitTestHarness.hpp>
+#include <Teuchos_RCP.hpp>
 
 #include <Epetra_SerialComm.h>
 #include <Epetra_Map.h>
@@ -73,8 +74,8 @@ TEUCHOS_UNIT_TEST( AdjointMC, AdjointMC_test)
     }
     A.FillComplete();
 
-    Epetra_LinearProblem *linear_problem = 
-	new Epetra_LinearProblem( &A, &x, &b );
+    Teuchos::RCP<Epetra_LinearProblem> linear_problem = Teuchos::rcp(
+	new Epetra_LinearProblem( &A, &x, &b ) );
 
     HMCSA::AdjointMC adjoint_mc_solver( linear_problem );
     adjoint_mc_solver.walk( 1000, 1.0e-8 );

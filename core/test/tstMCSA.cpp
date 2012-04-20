@@ -80,8 +80,8 @@ TEUCHOS_UNIT_TEST( MCSA, MCSA_test)
     std::cout << std::endl <<
 	"Operator spectral radius: " << spec_rad_A << std::endl;
 
-    Epetra_LinearProblem *linear_problem = 
-	new Epetra_LinearProblem( A.getRawPtr(), &x, &b );
+    Teuchos::RCP<Epetra_LinearProblem> linear_problem = Teuchos::rcp(
+	new Epetra_LinearProblem( A.getRawPtr(), &x, &b ) );
     HMCSA::MCSA mcsa_solver( linear_problem );
     mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
 

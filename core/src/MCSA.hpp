@@ -7,6 +7,8 @@
 #ifndef HMCSA_MCSA_HPP
 #define HMCSA_MCSA_HPP
 
+#include <Teuchos_RCP.hpp>
+
 #include <Epetra_CrsMatrix.h>
 #include <Epetra_LinearProblem.h>
 
@@ -18,7 +20,7 @@ class MCSA
   private:
 
     // Linear problem.
-    Epetra_LinearProblem *d_linear_problem;
+    Teuchos::RCP<Epetra_LinearProblem> d_linear_problem;
 
     // Iteration count.
     int d_num_iters;
@@ -26,7 +28,7 @@ class MCSA
   public:
 
     // Constructor.
-    MCSA( Epetra_LinearProblem *linear_problem );
+    MCSA( Teuchos::RCP<Epetra_LinearProblem> &linear_problem );
 
     // Destructor.
     ~MCSA();

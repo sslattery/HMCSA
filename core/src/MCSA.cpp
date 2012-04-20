@@ -15,7 +15,7 @@ namespace HMCSA
 /*! 
  * \brief Constructor.
  */
-MCSA::MCSA( Epetra_LinearProblem *linear_problem )
+MCSA::MCSA( Teuchos::RCP<Epetra_LinearProblem> &linear_problem )
     : d_linear_problem( linear_problem )
     , d_num_iters( 0 )
 { /* ... */ }
@@ -44,8 +44,9 @@ void MCSA::iterate( const int max_iters,
     Epetra_Map row_map = A->RowMap();
     Epetra_Vector delta_x( row_map );
     Epetra_Vector residual( row_map );
-    Epetra_LinearProblem residual_problem( A, &delta_x, &residual );
-    AdjointMC mc_solver( &residual_problem );
+    Teuchos::RCP<Epetra_LinearProblem> residual_problem = Teuchos::rcp(
+	new Epetra_LinearProblem( A, &delta_x, &residual ) );
+    AdjointMC mc_solver( residual_problem );
 
     Epetra_CrsMatrix H = mc_solver.getH();
     Epetra_Vector temp_vec( row_map );

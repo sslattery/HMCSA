@@ -7,6 +7,8 @@
 #ifndef HSequentialMC_SequentialMC_HPP
 #define HMCSA_SequentialMC_HPP
 
+#include <Teuchos_RCP.hpp>
+
 #include <Epetra_CrsMatrix.h>
 #include <Epetra_LinearProblem.h>
 
@@ -18,7 +20,7 @@ class SequentialMC
   private:
 
     // Linear problem.
-    Epetra_LinearProblem *d_linear_problem;
+    Teuchos::RCP<Epetra_LinearProblem> d_linear_problem;
 
     // Iteration count.
     int d_num_iters;
@@ -26,7 +28,7 @@ class SequentialMC
   public:
 
     // Constructor.
-    SequentialMC( Epetra_LinearProblem *linear_problem );
+    SequentialMC( Teuchos::RCP<Epetra_LinearProblem> &linear_problem );
 
     // Destructor.
     ~SequentialMC();

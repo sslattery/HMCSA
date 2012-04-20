@@ -1,8 +1,8 @@
 //---------------------------------------------------------------------------//
 /*!
- * \file   mesh/test/tstOperatorTools.cpp
+ * \file   mesh/test/tstDiffusionOperator.cpp
  * \author Stuart Slattery
- * \brief  OperatorTools class unit tests.
+ * \brief  DiffusionOperator class unit tests.
  */
 //---------------------------------------------------------------------------//
 
@@ -48,5 +48,5 @@ TEUCHOS_UNIT_TEST( DiffusionOperator, diffusion_operator_radius_test )
 }
 
 //---------------------------------------------------------------------------//
-//                        end of tstOperatorTools.cpp
+//                        end of tstDiffusionOperator.cpp
 //---------------------------------------------------------------------------//
