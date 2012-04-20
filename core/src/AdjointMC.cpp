@@ -110,6 +110,8 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 	    cdf_inverted = false;
 	    for ( int j = 0; j < C_size; ++j )
 	    {
+		std::cout << C_size << " " << zeta << " " 
+			  << C_values[j] << " " << C_indices[j] << " " << state << std::endl;
 		if ( zeta < C_values[j] && !cdf_inverted )
 		{
 		    new_state = C_indices[j];
@@ -136,15 +138,15 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 			      H_indices.end(),
 			      state );
 
-	    std::cout << state << " " << new_state << std::endl;
-	    std::cout << Q_values[std::distance(Q_indices.begin(),Q_it)] 
-		      << " " << Q_values.size() << " " 
-		      << std::distance(Q_indices.begin(),Q_it) << std::endl;
+	    // std::cout << state << " " << new_state << std::endl;
+	    // std::cout << Q_values[std::distance(Q_indices.begin(),Q_it)] 
+	    // 	      << " " << Q_values.size() << " " 
+	    // 	      << std::distance(Q_indices.begin(),Q_it) << std::endl;
 
-	    std::cout << H_values[std::distance(H_indices.begin(),H_it)] 
-		      << " " << H_values.size() << " " 
-		      << std::distance(H_indices.begin(),H_it) << std::endl;
-	    std::cout << "----------------------------" << std::endl;
+	    // std::cout << H_values[std::distance(H_indices.begin(),H_it)] 
+	    // 	      << " " << H_values.size() << " " 
+	    // 	      << std::distance(H_indices.begin(),H_it) << std::endl;
+	    // std::cout << "----------------------------" << std::endl;
 
 	    if ( Q_values[std::distance(Q_indices.begin(),Q_it)] == 0 ||
 		 Q_it == Q_indices.end() )
