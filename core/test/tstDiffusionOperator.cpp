@@ -38,7 +38,7 @@ TEUCHOS_UNIT_TEST( DiffusionOperator, diffusion_operator_radius_test )
 						 HMCSA::HMCSA_DIRICHLET,
 						 1.0, 1.0, 1.0, 1.0,
 						 4, 4,
-						 0.01, 0.01, 0.05 );
+						 0.01, 0.01, 0.05, 1.0 );
 
     Teuchos::RCP<Epetra_CrsMatrix> matrix = diffusion_operator.getCrsMatrix();
 

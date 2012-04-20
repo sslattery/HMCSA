@@ -62,7 +62,8 @@ class DiffusionOperator
 		       const int num_y,
 		       const double dx,
 		       const double dy,
-		       const double dt );
+		       const double dt,
+		       const double alpha );
 
     // Destructor.
     ~DiffusionOperator();
@@ -78,7 +79,8 @@ class DiffusionOperator
 				   const int num_y,
 				   const double dx,
 				   const double dy,
-				   const double dt );
+				   const double dt,
+				   const double alpha );
 };
 
 } // end namespace HMCSA

@@ -28,7 +28,8 @@ DiffusionOperator::DiffusionOperator( const int x_min_type,
 				      const int num_y,
                                       const double dx,
                                       const double dy,
-				      const double dt )
+				      const double dt,
+				      const double alpha )
     : d_x_min_type( x_min_type )
     , d_x_max_type( x_max_type )
     , d_y_min_type( y_min_type )
@@ -38,7 +39,7 @@ DiffusionOperator::DiffusionOperator( const int x_min_type,
     , d_y_min_value( y_min_value )
     , d_y_max_value( y_max_value )
 {
-    build_diffusion_operator( num_x, num_y, dx, dy, dt );
+    build_diffusion_operator( num_x, num_y, dx, dy, dt, alpha );
 }
 
 /*!
@@ -54,7 +55,8 @@ void DiffusionOperator::build_diffusion_operator( const int num_x,
 						  const int num_y,
 						  const double dx,
 						  const double dy,
-						  const double dt )
+						  const double dt,
+						  const double alpha )
 {
     int N = num_x*num_y;
     std::vector<int> entries_per_row( N, 5 );
@@ -65,11 +67,11 @@ void DiffusionOperator::build_diffusion_operator( const int num_x,
     d_matrix = Teuchos::rcp( 
 	new Epetra_CrsMatrix( Copy, map, &entries_per_row[0] ) );
 
-    double diag = 1.0 + 2*dt*( 1/(dx*dx) + 1/(dy*dy) );
-    double i_minus = -dt/(dx*dx);
-    double i_plus = -dt/(dx*dx);
-    double j_minus = -dt/(dy*dy);
-    double j_plus = -dt/(dy*dy);
+    double diag = 1.0 + 2*dt*alpha*( 1/(dx*dx) + 1/(dy*dy) );
+    double i_minus = -dt*alpha/(dx*dx);
+    double i_plus = -dt*alpha/(dx*dx);
+    double j_minus = -dt*alpha/(dy*dy);
+    double j_plus = -dt*alpha/(dy*dy);
 
     int idx;
     int idx_iminus;

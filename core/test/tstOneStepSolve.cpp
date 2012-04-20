@@ -44,14 +44,18 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     int problem_size = N*N;
 
     // Build operator.
-    double bc_val = 3.0;
+    double bc_val = 10.0;
+    double dx = 0.01;
+    double dy = 0.01;
+    double dt = 0.05;
+    double alpha = 1.0;
     HMCSA::DiffusionOperator diffusion_operator( HMCSA::HMCSA_DIRICHLET,
 						 HMCSA::HMCSA_DIRICHLET,
 						 HMCSA::HMCSA_DIRICHLET,
 						 HMCSA::HMCSA_DIRICHLET,
 						 bc_val, bc_val, bc_val, bc_val,
 						 N, N,
-						 0.01, 0.01, 0.05 );
+						 dx, dy, dt, alpha );
 
     Teuchos::RCP<Epetra_CrsMatrix> A = diffusion_operator.getCrsMatrix();
 
@@ -113,7 +117,6 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     // Aztec GMRES Solve.
     Epetra_LinearProblem aztec_linear_problem( A.getRawPtr(), &x_aztec, &b );
     AztecOO aztec_solver( aztec_linear_problem );
-//    aztec_solver.SetAztecOption( AZ_precond, AZ_jacobi );
     aztec_solver.SetAztecOption( AZ_solver, AZ_gmres );
     aztec_solver.Iterate( 100, 1.0e-8 );
 
@@ -122,6 +125,7 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     Epetra_Vector error( View, map, &error_vector[0] );
     for (int i = 0; i < problem_size; ++i)
     {
+	std::cout <<  x_aztec[i] << std::endl;
 	error[i] = x[i] - x_aztec[i];
     }
     double error_norm;

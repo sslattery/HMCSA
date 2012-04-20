@@ -38,8 +38,6 @@ AdjointMC::~AdjointMC()
 void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 {
     // Setup.
-    const Epetra_CrsMatrix *A = 
-	dynamic_cast<Epetra_CrsMatrix*>( d_linear_problem->GetMatrix() );
     Epetra_Vector *x = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetLHS() );
     const Epetra_Vector *b = 
@@ -138,7 +136,18 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 			      H_indices.end(),
 			      state );
 
-	    if ( Q_values[std::distance(Q_indices.begin(),Q_it)] == 0 )
+	    std::cout << state << " " << new_state << std::endl;
+	    std::cout << Q_values[std::distance(Q_indices.begin(),Q_it)] 
+		      << " " << Q_values.size() << " " 
+		      << std::distance(Q_indices.begin(),Q_it) << std::endl;
+
+	    std::cout << H_values[std::distance(H_indices.begin(),H_it)] 
+		      << " " << H_values.size() << " " 
+		      << std::distance(H_indices.begin(),H_it) << std::endl;
+	    std::cout << "----------------------------" << std::endl;
+
+	    if ( Q_values[std::distance(Q_indices.begin(),Q_it)] == 0 ||
+		 Q_it == Q_indices.end() )
 	    {
 		weight = 0;
 	    }

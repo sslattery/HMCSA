@@ -13,7 +13,6 @@
 #include <ostream>
 
 #include "HMCSATypes.hpp"
-#include "DiffusionOperator.hpp"
 #include "OperatorTools.hpp"
 #include "JacobiPreconditioner.hpp"
 
