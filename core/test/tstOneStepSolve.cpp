@@ -40,7 +40,7 @@
 
 TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 {
-    int N = 4;
+    int N = 100;
     int problem_size = N*N;
 
     // Build operator.
@@ -109,6 +109,11 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     HMCSA::JacobiPreconditioner preconditioner;
     preconditioner.precondition( linear_problem );
 
+    double spec_rad_precond_A = 
+	HMCSA::OperatorTools::spectralRadius( preconditioner.getOperator() );
+    std::cout << std::endl << "Preconditioned Operator spectral radius: " 
+	      << spec_rad_precond_A << std::endl;
+
     // MCSA Solve.
     HMCSA::MCSA mcsa_solver( linear_problem );
     mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
@@ -125,7 +130,7 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     Epetra_Vector error( View, map, &error_vector[0] );
     for (int i = 0; i < problem_size; ++i)
     {
-	std::cout <<  x_aztec[i] << std::endl;
+	std::cout << x_aztec[i] << std::endl;
 	error[i] = x[i] - x_aztec[i];
     }
     double error_norm;
