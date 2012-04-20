@@ -64,6 +64,7 @@ void DiffusionOperator::build_diffusion_operator( const int num_x,
 
     d_matrix = Teuchos::rcp( 
 	new Epetra_CrsMatrix( Copy, map, &entries_per_row[0] ) );
+
     double diag = 1.0 + 2*dt*( 1/(dx*dx) + 1/(dy*dy) );
     double i_minus = -dt/(dx*dx);
     double i_plus = -dt/(dx*dx);
