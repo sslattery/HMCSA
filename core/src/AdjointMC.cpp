@@ -19,7 +19,7 @@ namespace HMCSA
 /*!
  * \brief Constructor.
  */
-AdjointMC::AdjointMC( Epetra_LinearProblem *linear_problem )
+AdjointMC::AdjointMC( Teuchos::RCP<Epetra_LinearProblem> &linear_problem )
     : d_linear_problem( linear_problem )
     , d_H( buildH() )
     , d_Q( buildQ() )

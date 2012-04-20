@@ -7,6 +7,8 @@
 #ifndef HMCSA_ADJOINTMC_HPP
 #define HMCSA_ADJOINTMC_HPP
 
+#include <Teuchos_RCP.hpp>
+
 #include <Epetra_CrsMatrix.h>
 #include <Epetra_LinearProblem.h>
 
@@ -18,7 +20,7 @@ class AdjointMC
   private:
 
     // Linear problem.
-    Epetra_LinearProblem *d_linear_problem;
+    Teuchos::RCP<Epetra_LinearProblem> d_linear_problem;
 
     // Iteration matrix.
     Epetra_CrsMatrix d_H;
@@ -32,7 +34,7 @@ class AdjointMC
   public:
 
     // Constructor.
-    AdjointMC( Epetra_LinearProblem *linear_problem );
+    AdjointMC( Teuchos::RCP<Epetra_LinearProblem> &linear_problem );
 
     // Destructor.
     ~AdjointMC();
