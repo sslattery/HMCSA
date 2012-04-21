@@ -92,7 +92,7 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     double dx = 0.01;
     double dy = 0.01;
     double dt = 0.05;
-    double alpha = 1.0;
+    double alpha = 0.01;
     HMCSA::DiffusionOperator diffusion_operator(
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
