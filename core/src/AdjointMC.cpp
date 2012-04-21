@@ -88,6 +88,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 	    if ( zeta < b_cdf[j] && !source_inverted )
 	    {
 		init_state = j;
+		source_inverted = true;
 	    }
 	}
 

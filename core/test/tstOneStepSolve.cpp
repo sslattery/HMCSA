@@ -84,7 +84,7 @@ buildH( const Teuchos::RCP<Epetra_CrsMatrix> &A)
 
 TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 {
-    int N = 100;
+    int N = 10;
     int problem_size = N*N;
 
     // Build operator.
@@ -144,11 +144,13 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     Teuchos::RCP<Epetra_LinearProblem> linear_problem = Teuchos::rcp(
 	new Epetra_LinearProblem( A.getRawPtr(), &x, &b ) );
 
-    // MCSA Precondition.
+    // MCSA Jacobi precondition.
     Teuchos::RCP<Epetra_CrsMatrix> H = buildH( A );
     double spec_rad_H = HMCSA::OperatorTools::spectralRadius( H );
-    std::cout << std::endl <<
-	"Iteration matrix spectral radius: " << spec_rad_H << std::endl;
+    std::cout << std::endl << std::endl
+	      << "---------------------" << std::endl
+	      << "Iteration matrix spectral radius: " 
+	      << spec_rad_H << std::endl;
 
     HMCSA::JacobiPreconditioner preconditioner;
     preconditioner.precondition( linear_problem );
@@ -156,13 +158,13 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     H = buildH( preconditioner.getOperator() );
     double spec_rad_precond_H = 
 	HMCSA::OperatorTools::spectralRadius( H );
-    std::cout << std::endl 
-	      << "Preconditioned iteration matrix spectral radius: "
-	      << spec_rad_precond_H << std::endl;
+    std::cout << "Preconditioned iteration matrix spectral radius: "
+	      << spec_rad_precond_H << std::endl
+	      << "---------------------" << std::endl;
 
     // MCSA Solve.
     HMCSA::MCSA mcsa_solver( linear_problem );
-    //mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
+    mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
     std::cout << "MCSA ITERS: " << mcsa_solver.getNumIters() << std::endl;
 
     // Aztec GMRES Solve.

@@ -34,6 +34,7 @@ void MCSA::iterate( const int max_iters,
 		    const int num_histories,
 		    const double weight_cutoff )
 {
+    // Extract the linear problem.
     Epetra_CrsMatrix *A = 
 	dynamic_cast<Epetra_CrsMatrix*>( d_linear_problem->GetMatrix() );
     Epetra_Vector *x = 
@@ -41,6 +42,7 @@ void MCSA::iterate( const int max_iters,
     const Epetra_Vector *b = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
 
+    // Setup the residual Adjoint MC solver.
     Epetra_Map row_map = A->RowMap();
     Epetra_Vector delta_x( row_map );
     Epetra_Vector residual( row_map );
@@ -48,6 +50,7 @@ void MCSA::iterate( const int max_iters,
 	new Epetra_LinearProblem( A, &delta_x, &residual ) );
     AdjointMC mc_solver( residual_problem );
 
+    // Iterate.
     Epetra_CrsMatrix H = mc_solver.getH();
     Epetra_Vector temp_vec( row_map );
     int N = A->NumGlobalRows();
@@ -62,21 +65,28 @@ void MCSA::iterate( const int max_iters,
 	for ( int i = 0; i < N; ++i )
 	{
 	    (*x)[i] = temp_vec[i] + (*b)[i];
+	    // std::cout << (*x)[i] << " " 
+	    // 	      << (*b)[i] << " " 
+	    // 	      << temp_vec[i] << std::endl;
 	}
-
+	std::cout << "-----" << std::endl;
 	A->Apply( *x, temp_vec );
 	for ( int i = 0; i < N; ++i )
 	{
 	    residual[i] = (*b)[i] - temp_vec[i];
+	    // std::cout << residual[i] << " " 
+	    // 	      << (*b)[i] << " " 
+	    // 	      << temp_vec[i] << std::endl;
 	}
-	
+	std::cout << "------------------" << std::endl;
 	mc_solver.walk( num_histories, weight_cutoff );
 
 	for ( int i = 0; i < N; ++i )
 	{
 	    (*x)[i] += delta_x[i];
+//	    std::cout << (*x)[i] << " " << delta_x[i] << std::endl;
 	}
-
+	std::cout << "=======================" << std::endl;
 	residual.NormInf( &residual_norm );
 	++d_num_iters;
     }
