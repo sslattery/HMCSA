@@ -49,6 +49,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     int state;
     int new_state;
     int init_state;
+    int new_index;
     double weight;
     double zeta;
     double relative_cutoff;
@@ -106,9 +107,12 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 				      &C_indices[0] );
 
 	    zeta = (double) rand() / RAND_MAX;
-	    new_state = std::distance( 
+	    new_index = std::distance( 
 		C_values.begin(),
-		std::lower_bound( C_values.begin(), C_values.end(), zeta ) );
+		std::lower_bound( C_values.begin(), 
+				  C_values.begin()+C_size,
+				  zeta ) );
+	    new_state = C_indices[ new_index ];
 
 	    d_Q.ExtractGlobalRowCopy( state, 
 				      N, 
@@ -122,13 +126,13 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 				      &H_values[0], 
 				      &H_indices[0] );
 
-	    Q_it = std::lower_bound( Q_indices.begin(),
-				     Q_indices.end(),
-				     new_state );
-		
-	    H_it = std::lower_bound( H_indices.begin(),
-				     H_indices.end(),
-				     state );
+	    Q_it = std::find( Q_indices.begin(),
+			      Q_indices.begin()+Q_size,
+			      new_state );
+
+	    H_it = std::find( H_indices.begin(),
+			      H_indices.begin()+H_size,
+			      state );
 
 	    // Compute new weight.
 	    if ( Q_values[std::distance(Q_indices.begin(),Q_it)] == 0 ||
