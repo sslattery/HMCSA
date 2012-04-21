@@ -87,19 +87,20 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     int N = 50;
     int problem_size = N*N;
 
-    // Build operator.
+    // Build the diffusion operator.
     double bc_val = 10.0;
     double dx = 0.01;
     double dy = 0.01;
     double dt = 0.05;
     double alpha = 1.0;
-    HMCSA::DiffusionOperator diffusion_operator( HMCSA::HMCSA_DIRICHLET,
-						 HMCSA::HMCSA_DIRICHLET,
-						 HMCSA::HMCSA_DIRICHLET,
-						 HMCSA::HMCSA_DIRICHLET,
-						 bc_val, bc_val, bc_val, bc_val,
-						 N, N,
-						 dx, dy, dt, alpha );
+    HMCSA::DiffusionOperator diffusion_operator(
+	HMCSA::HMCSA_DIRICHLET,
+	HMCSA::HMCSA_DIRICHLET,
+	HMCSA::HMCSA_DIRICHLET,
+	HMCSA::HMCSA_DIRICHLET,
+	bc_val, bc_val, bc_val, bc_val,
+	N, N,
+	dx, dy, dt, alpha );
 
     Teuchos::RCP<Epetra_CrsMatrix> A = diffusion_operator.getCrsMatrix();
     Epetra_Map map = A->RowMap();
@@ -164,7 +165,7 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 
     // MCSA Solve.
     HMCSA::MCSA mcsa_solver( linear_problem );
-    mcsa_solver.iterate( 10000, 1.0e-8, 100, 1.0e-8 );
+    mcsa_solver.iterate( 10000, 1.0e-12, 80, 1.0e-8 );
     std::cout << "MCSA ITERS: " << mcsa_solver.getNumIters() << std::endl;
 
     // Aztec GMRES Solve.
