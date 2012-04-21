@@ -50,7 +50,7 @@ void JacobiPreconditioner::precondition(
     Epetra_Vector A_diag( map, false );
     A->ExtractDiagonalCopy( A_diag );
 
-    // Compute (M^-1 A) and (M^-1 b)
+    // Compute (M^-1 A) and (M^-1 b).
     double ma_val;
     int A_size;
     std::vector<double> A_values(N);

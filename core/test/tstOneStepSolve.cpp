@@ -116,8 +116,9 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     std::cout << "MCSA ITERS: " << mcsa_solver.getNumIters() << std::endl;
 
     // Aztec GMRES Solve.
-    Epetra_LinearProblem aztec_linear_problem( A.getRawPtr(), &x_aztec, &b );
-    AztecOO aztec_solver( aztec_linear_problem );
+    Teuchos::RCP<Epetra_LinearProblem> aztec_linear_problem = Teuchos::rcp(
+	new Epetra_LinearProblem( A.getRawPtr(), &x_aztec, &b ) );
+    AztecOO aztec_solver( *aztec_linear_problem );
     aztec_solver.SetAztecOption( AZ_solver, AZ_gmres );
     aztec_solver.Iterate( 100, 1.0e-8 );
 
