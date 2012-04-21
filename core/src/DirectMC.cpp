@@ -8,6 +8,7 @@
 #include <cmath>
 #include <vector>
 #include <iterator>
+#include <algorithm>
 
 #include "DirectMC.hpp"
 
@@ -46,10 +47,10 @@ void DirectMC::walk( const int num_histories, const double weight_cutoff )
     // Random walk.
     int state;
     int new_state;
+    int new_index;
     double weight;
     double zeta;
     bool walk;
-    bool cdf_inverted;
     std::vector<double> H_values( N );
     std::vector<int> H_indices( N );
     int H_size;
@@ -78,15 +79,12 @@ void DirectMC::walk( const int num_histories, const double weight_cutoff )
 					  &C_values[0], 
 					  &C_indices[0] );
 		zeta = (double) rand() / RAND_MAX;
-		cdf_inverted = false;
-		for ( int j = 0; j < size_C; ++j )
-		{
-		    if ( zeta < C_values[j] && !cdf_inverted )
-		    {
-			new_state = C_indices[j];
-			cdf_inverted = true;
-		    }
-		}
+		new_index = std::distance( 
+		    C_values.begin(),
+		    std::lower_bound( C_values.begin(), 
+				      C_values.begin()+size_C,
+				      zeta ) );
+		new_state = C_indices[ new_index ];
 
 		d_P.ExtractGlobalRowCopy( state, 
 					  N, 
@@ -101,14 +99,15 @@ void DirectMC::walk( const int num_histories, const double weight_cutoff )
 					  &H_indices[0] );
 
 		P_it = std::find( P_indices.begin(),
-				  P_indices.end(),
+				  P_indices.begin()+size_P,
 				  new_state );
 		
 		H_it = std::find( H_indices.begin(),
-				  H_indices.end(),
+				  H_indices.begin()+H_size,
 				  new_state );
 
-		if ( P_values[std::distance(P_indices.begin(),P_it)] == 0 )
+		if ( P_values[std::distance(P_indices.begin(),P_it)] == 0 ||
+		     P_it == P_indices.end() )
 		{
 		    weight = 0;
 		}
