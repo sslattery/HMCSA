@@ -29,6 +29,7 @@ APPEND_SET(HEADERS
   MCSA.hpp
   OperatorTools.hpp
   SequentialMC.hpp
+  VtkWriter.hpp
   )
 
 # Set sources
@@ -42,6 +43,7 @@ APPEND_SET(SOURCES
   MCSA.cpp
   OperatorTools.cpp
   SequentialMC.cpp
+  VtkWriter.cpp
   )
 
 # Set addition headers and source based on package-specific

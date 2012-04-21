@@ -1,115 +1,125 @@
 //---------------------------------------------------------------------------//
-// Visualize.cpp
-// Visualize member defintions
+// \file VtkWriter.cpp
+// \author Stuart R. Slattery
+// \brief VtkWriter definition.
 //---------------------------------------------------------------------------//
 
-#include "Visualize.hpp"
-#include "Matrix.hpp"
-#include "Properties.hpp"
-#include "moab/Core.hpp"
-#include "moab/Interface.hpp"
-#include "moab/Range.hpp"
-#include <vector>
 #include <string>
 #include <sstream>
 #include <cassert>
 
-//---------------------------------------------------------------------------//
+#include "VtkWriter.hpp"
 
-// constructor
-Visualize::Visualize(std::vector<Matrix*> results, Properties *props)
+#include <MBCore.hpp>
+
+namespace HMCSA
 {
 
-  // create core instance
-  moab::Interface *MBI = new moab::Core();
+/*!
+ * \brief Constructor.
+ */
+VtkWriter::VtkWriter( const double x_min,
+		      const double x_max,
+		      const double y_min,
+		      const double y_max,
+		      const double dx,
+		      const double dy,
+		      const int num_x,
+		      const int num_y )
+{
+    // Create core instance.
+    d_MBI = Teuchos::rcp( new moab::Core() );
 
-  // error value
-  moab::ErrorCode rval;
+    // Error code.
+    moab::ErrorCode rval;
 
-  // create the vertices
-  std::vector<double> coords;
-  unsigned int num_i = props->x_steps;
-  unsigned int num_j = props->y_steps;
-  unsigned int num_verts = num_i*num_j;
-  coords.resize(num_verts*3);
+    // Create the vertices.
+    std::vector<double> coords;
+    unsigned int num_verts = num_x*num_y;
+    coords.resize(num_verts*3);
 
-  std::vector<double> i_arr;
-  unsigned int x;
-  for (x = 0; x != num_i; x++) {
-    i_arr.push_back(x*props->hx);
-  }
-
-  std::vector<double> j_arr;
-  unsigned int y;
-  for (y = 0; y != num_j; y++) {
-    j_arr.push_back(y*props->hy);
-  }
-
-  unsigned int ival, jval, idx;
-  for (jval = 0; jval != num_j; jval++) {
-    for (ival = 0; ival != num_i; ival++) {
-      idx = ival + num_i*jval;
-      coords[3*idx] = i_arr[ival];
-      coords[3*idx + 1] = j_arr[jval];
-      coords[3*idx + 2] = 0.0;
+    std::vector<double> i_arr;
+    for (int i = 0; i < num_x; ++i) 
+    {
+	i_arr.push_back( x_min + i*dx );
     }
-  }
 
-  moab::Range vtx_range;
-  rval = MBI->create_vertices(&coords[0], num_verts, vtx_range);
-  assert(moab::MBSUCCESS == rval);
-
-  // create the quads
-  moab::EntityHandle conn[4];
-  unsigned int iq, jq;
-  for (jq = 0; jq != num_j - 1; jq++) {
-    for (iq = 0; iq != num_i - 1; iq++) {
-      idx = iq + (num_i)*jq;
-      conn[0] = vtx_range[idx];
-      conn[1] = vtx_range[idx + 1];
-      conn[2] = vtx_range[idx + num_i + 1];
-      conn[3] = vtx_range[idx + num_i];
-
-
-      moab::EntityHandle this_quad;
-      rval = MBI->create_element(moab::MBQUAD, conn, 4, this_quad);
-      assert(moab::MBSUCCESS == rval);
+    std::vector<double> j_arr;
+    for (int j = 0; j < num_y; ++j) 
+    {
+	j_arr.push_back( y_min + j*dy );
     }
-  }
 
-  // tag the vertices
-  moab::Tag temp;
-  rval = MBI->tag_create("TEMPERATURE", 
-                         sizeof(double),
-                         moab::MB_TAG_DENSE,
-                         moab::MB_TYPE_DOUBLE,
-                         temp, 
-                         0);
-  assert(moab::MBSUCCESS == rval);
+    int idx;
+    for (int j = 0; j < num_y; ++j) 
+    {
+	for (int i = 0; i < num_x; ++i) 
+	{
+	    idx = i + num_x*j;
+	    coords[3*idx] = i_arr[i];
+	    coords[3*idx + 1] = j_arr[j];
+	    coords[3*idx + 2] = 0.0;
+	}
+    }
 
-  unsigned int t;
-  std::stringstream convert;
-  std::string filename;
-  for (t = 0; t != results.size(); t++) {
+    rval = d_MBI->create_vertices( &coords[0], num_verts, d_vtx_range );
+    assert( moab::MB_SUCCESS == rval );
 
-    std::stringstream convert;
-    convert << t;
-    filename = "time" + convert.str() + ".vtk";
+    // create the quads
+    moab::EntityHandle conn[4];
+    for (int j = 0; j < num_y - 1; ++j) 
+    {
+	for (int i = 0; i < num_x - 1; ++i) 
+	{
+	    idx = i + (num_x)*j;
+	    conn[0] = d_vtx_range[idx];
+	    conn[1] = d_vtx_range[idx + 1];
+	    conn[2] = d_vtx_range[idx + num_x + 1];
+	    conn[3] = d_vtx_range[idx + num_x];
 
-    rval = MBI->tag_set_data(temp, vtx_range, results[t]->elements);
-    assert(moab::MBSUCCESS == rval);
-
-    rval = MBI->write_mesh(&filename[0]);
-    assert(moab::MBSUCCESS == rval);
-  }
+	    moab::EntityHandle this_quad;
+	    rval = d_MBI->create_element(moab::MBQUAD, conn, 4, this_quad);
+	    assert( moab::MB_SUCCESS == rval );
+	}
+    }
 }
+
 
 // destructor
-Visualize::~Visualize()
+VtkWriter::~VtkWriter()
+{ /* ... */ }
+
+/*!
+ * \brief Write data to a mesh file. 
+ */
+void VtkWriter::write_vector( const std::vector<double> &u,
+			      const std::string &name )
 {
+    // error value
+    moab::ErrorCode rval;
+
+    // tag the vertices
+    moab::Tag u_tag;
+    rval = d_MBI->tag_create("u", 
+			   sizeof(double),
+			   moab::MB_TAG_DENSE,
+			   moab::MB_TYPE_DOUBLE,
+			   u_tag, 
+			   0);
+    assert(moab::MB_SUCCESS == rval);
+
+    std::string filename = "time" + name + ".vtk";
+
+    rval = d_MBI->tag_set_data( u_tag, d_vtx_range, &u[0] );
+    assert( moab::MB_SUCCESS == rval );
+
+    rval = d_MBI->write_mesh( &filename[0] );
+    assert( moab::MB_SUCCESS == rval );
 }
 
+} // end namespace HMCSA
+
 //---------------------------------------------------------------------------//
-// end Visualize.cpp
+// end VtkWriter.cpp
 //---------------------------------------------------------------------------//
 

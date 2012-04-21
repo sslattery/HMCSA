@@ -1,9 +1,4 @@
 //----------------------------------*-C++-*----------------------------------//
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3.0 of the License, or (at your option) any later version.
-//
 /*!
  * \file   mesh/test/tstOneStepSolve.cpp
  * \author Stuart Slattery
@@ -22,6 +17,7 @@
 #include "JacobiPreconditioner.hpp"
 #include "DiffusionOperator.hpp"
 #include "HMCSATypes.hpp"
+#include "VtkWriter.hpp"
 
 #include <Teuchos_UnitTestHarness.hpp>
 #include <Teuchos_RCP.hpp>
@@ -116,7 +112,7 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 
     // MCSA Solve.
     HMCSA::MCSA mcsa_solver( linear_problem );
-    mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
+    //mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );
     std::cout << "MCSA ITERS: " << mcsa_solver.getNumIters() << std::endl;
 
     // Aztec GMRES Solve.
@@ -130,7 +126,6 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     Epetra_Vector error( View, map, &error_vector[0] );
     for (int i = 0; i < problem_size; ++i)
     {
-	std::cout << x_aztec[i] << std::endl;
 	error[i] = x[i] - x_aztec[i];
     }
     double error_norm;
@@ -138,6 +133,11 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     std::cout << std::endl << 
 	"Aztec GMRES vs. MCSA absolute error L2 norm: " << 
 	error_norm << std::endl;    
+
+    // Write the results to file.
+    HMCSA::VtkWriter vtk_writer( 0.0, 1.0, 0.0, 1.0,
+				 dx, dy, N, N );
+    vtk_writer.write_vector( x_aztec_vector, "aztec" );
 }
 
 //---------------------------------------------------------------------------//

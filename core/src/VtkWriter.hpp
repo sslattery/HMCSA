@@ -1,35 +1,57 @@
 //---------------------------------------------------------------------------//
-// Visualize.hpp
-// Visualize class definition
+// \file VtkWriter.hpp
+// \author Stuart Slattery
+// \brief VtkWriter class declaration.
 //---------------------------------------------------------------------------//
 
-#ifndef __VISUALIZEHPP__
-#define __VISUALIZEHPP__
+#ifndef HMCSA_VTKWRITER_HPP
+#define HMCSA_VTKWRITER_HPP
 
-#include "Matrix.hpp"
-#include "Properties.hpp"
-#include "moab/Core.hpp"
-#include "moab/Interface.hpp"
-#include "moab/Range.hpp"
 #include <vector>
 
-//---------------------------------------------------------------------------//
+#include <Teuchos_RCP.hpp>
 
-class Visualize
+#include <MBInterface.hpp>
+#include <MBRange.hpp>
+
+namespace HMCSA
 {
-public:
 
-  // constructor
-  Visualize(std::vector<Matrix*> results, Properties *props);
+class VtkWriter
+{
+  private:
 
-  // destructor
-  ~Visualize();
+    // MOAB instance.
+    Teuchos::RCP<moab::Interface> d_MBI;
 
-}; // end class visualize
+    // Vertex range.
+    moab::Range d_vtx_range;
 
-#endif // __VISUALIZEHPP__
+  public:
+
+    // Constructor.
+    VtkWriter( const double x_min,
+	       const double x_max,
+	       const double y_min,
+	       const double y_max,
+	       const double dx,
+	       const double dy,
+	       const int num_x,
+	       const int num_y );
+
+    // Destructor.
+    ~VtkWriter();
+
+    // Write data to a mesh file. 
+    void write_vector( const std::vector<double> &u, 
+		       const std::string &name );
+}; 
+
+} // end namespace HMCSA
+
+#endif // end HMCSA_VTKWRITER_HPP
 
 //---------------------------------------------------------------------------//
-// end Visualize.hpp
+// end VtkWriter.hpp
 //---------------------------------------------------------------------------//
 

@@ -6,7 +6,7 @@
 #   Trilinos/cmake/TrilinosTPLs.cmake
 #
 
-SET(FOOD_TPLS_FINDMODS_CLASSIFICATIONS
+SET(HMCSA_TPLS_FINDMODS_CLASSIFICATIONS
   MOAB      "cmake/TPLs/"      EX
   )
 
