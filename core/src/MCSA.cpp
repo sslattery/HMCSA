@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
 // \file MCSA.cpp
 // \author Stuart R. Slattery
-// \brief Monte Carlo Synthetic Acceleration solver declaration.
+// \brief Monte Carlo Synthetic Acceleration solver definition.
 //---------------------------------------------------------------------------//
 
 #include "MCSA.hpp"

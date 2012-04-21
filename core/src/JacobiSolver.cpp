@@ -1,10 +1,10 @@
 //---------------------------------------------------------------------------//
-// \file MCSA.cpp
+// \file JacobiSolver.cpp
 // \author Stuart R. Slattery
-// \brief Monte Carlo Synthetic Acceleration solver declaration.
+// \brief Fixed point Jacobi solver definition.
 //---------------------------------------------------------------------------//
 
-#include "MCSA.hpp"
+#include "JacobiSolver.hpp"
 #include "AdjointMC.hpp"
 
 #include <Epetra_Map.h>
@@ -15,7 +15,7 @@ namespace HMCSA
 /*! 
  * \brief Constructor.
  */
-MCSA::MCSA( Teuchos::RCP<Epetra_LinearProblem> &linear_problem )
+JacobiSolver::JacobiSolver( Teuchos::RCP<Epetra_LinearProblem> &linear_problem )
     : d_linear_problem( linear_problem )
     , d_num_iters( 0 )
 { /* ... */ }
@@ -23,16 +23,13 @@ MCSA::MCSA( Teuchos::RCP<Epetra_LinearProblem> &linear_problem )
 /*!
  * \brief Destructor.
  */
-MCSA::~MCSA()
+JacobiSolver::~JacobiSolver()
 { /* ... */ }
  
 /*!
  * \brief Solve.
  */
-void MCSA::iterate( const int max_iters,
-		    const double tolerance,
-		    const int num_histories,
-		    const double weight_cutoff )
+void JacobiSolver::iterate( const int max_iters, const double tolerance )
 {
     // Extract the linear problem.
     Epetra_CrsMatrix *A = 
@@ -42,16 +39,12 @@ void MCSA::iterate( const int max_iters,
     const Epetra_Vector *b = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
 
-    // Setup the residual Adjoint MC solver.
+    // Setup the residual.
     Epetra_Map row_map = A->RowMap();
-    Epetra_Vector delta_x( row_map );
     Epetra_Vector residual( row_map );
-    Teuchos::RCP<Epetra_LinearProblem> residual_problem = Teuchos::rcp(
-	new Epetra_LinearProblem( A, &delta_x, &residual ) );
-    AdjointMC mc_solver( residual_problem );
 
     // Iterate.
-    Epetra_CrsMatrix H = mc_solver.getH();
+    Epetra_CrsMatrix H = buildH( A );
     Epetra_Vector temp_vec( row_map );
     int N = A->NumGlobalRows();
     d_num_iters = 0;
@@ -72,20 +65,61 @@ void MCSA::iterate( const int max_iters,
 	{
 	    residual[i] = (*b)[i] - temp_vec[i];
 	}
-	mc_solver.walk( num_histories, weight_cutoff );
 
-	for ( int i = 0; i < N; ++i )
-	{
-	    (*x)[i] += delta_x[i];
-	}
 	residual.NormInf( &residual_norm );
 	++d_num_iters;
     }
 }
 
+/*!
+ * \brief Build the Jacobi iteration matrix.
+ */
+Epetra_CrsMatrix
+JacobiSolver::buildH( const Epetra_CrsMatrix *A )
+{
+    Epetra_CrsMatrix H(Copy, A->RowMap(), A->GlobalMaxNumEntries() );
+    int N = A->NumGlobalRows();
+    std::vector<double> A_values( N );
+    std::vector<int> A_indices( N );
+    int A_size = 0;
+    double local_H;
+    bool found_diag = false;
+    for ( int i = 0; i < N; ++i )
+    {
+	A->ExtractGlobalRowCopy( i,
+				 N, 
+				 A_size, 
+				 &A_values[0], 
+				 &A_indices[0] );
+
+	for ( int j = 0; j < A_size; ++j )
+	{
+	    if ( i == A_indices[j] )
+	    {
+		local_H = 1.0 - A_values[j];
+		H.InsertGlobalValues( i, 1, &local_H, &A_indices[j] );
+		found_diag = true;
+	    }
+	    else
+	    {
+		local_H = -A_values[j];
+		H.InsertGlobalValues( i, 1, &local_H, &A_indices[j] );
+	    }
+	}
+	if ( !found_diag )
+	{
+	    local_H = 1.0;
+	    H.InsertGlobalValues( i, 1, &local_H, &i );
+	}
+    }
+    H.FillComplete();
+    return H;
+}
+
+
 } // end namespace HMCSA
 
 //---------------------------------------------------------------------------//
-// end MCSA.cpp
+// end JacobiSolver.cpp
 //---------------------------------------------------------------------------//
 

@@ -26,6 +26,7 @@ APPEND_SET(HEADERS
   Exception.hpp
   HMCSATypes.hpp
   JacobiPreconditioner.hpp
+  JacobiSolver.hpp
   MCSA.hpp
   OperatorTools.hpp
   SequentialMC.hpp
@@ -40,6 +41,7 @@ APPEND_SET(SOURCES
   DirectMC.cpp
   Exception.cpp
   JacobiPreconditioner.cpp
+  JacobiSolver.cpp
   MCSA.cpp
   OperatorTools.cpp
   SequentialMC.cpp

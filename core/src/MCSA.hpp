@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
 // \file MCSA.hpp
 // \author Stuart R. Slattery
-// \brief Monte Carlo Synthetic Acceleration solver definition.
+// \brief Monte Carlo Synthetic Acceleration solver declaration.
 //---------------------------------------------------------------------------//
 
 #ifndef HMCSA_MCSA_HPP

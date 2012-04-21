@@ -1,11 +1,11 @@
 //---------------------------------------------------------------------------//
-// \file MCSA.hpp
+// \file JacobiSolver.hpp
 // \author Stuart R. Slattery
-// \brief Monte Carlo Synthetic Acceleration solver definition.
+// \brief Fixed point Jacobi solver declaration.
 //---------------------------------------------------------------------------//
 
-#ifndef HMCSA_MCSA_HPP
-#define HMCSA_MCSA_HPP
+#ifndef HMCSA_JacobiSolver_HPP
+#define HMCSA_JacobiSolver_HPP
 
 #include <Teuchos_RCP.hpp>
 
@@ -15,7 +15,7 @@
 namespace HMCSA
 {
 
-class MCSA
+class JacobiSolver
 {
   private:
 
@@ -28,27 +28,30 @@ class MCSA
   public:
 
     // Constructor.
-    MCSA( Teuchos::RCP<Epetra_LinearProblem> &linear_problem );
+    JacobiSolver( Teuchos::RCP<Epetra_LinearProblem> &linear_problem );
 
     // Destructor.
-    ~MCSA();
+    ~JacobiSolver();
 
     // Solve.
-    void iterate( const int max_iters,
-		  const double tolerance,
-		  const int num_histories,
-		  const double weight_cutoff );
+    void iterate( const int max_iters, const double tolerance );
 
     // Get the iteration count from the last solve.
     int getNumIters() const
     { return d_num_iters; }
+
+  private:
+
+    // brief Build the Jacobi iteration matrix.
+    Epetra_CrsMatrix buildH( const Epetra_CrsMatrix *A );
+
 };
 
 } // end namespace HMCSA
 
-#endif // end HMCSA_MCSA_HPP
+#endif // end HMCSA_JacobiSolver_HPP
 
 //---------------------------------------------------------------------------//
-// end MCSA.hpp
+// end JacobiSolver.hpp
 //---------------------------------------------------------------------------//
 
