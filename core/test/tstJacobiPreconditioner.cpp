@@ -31,7 +31,7 @@
 
 TEUCHOS_UNIT_TEST( PreconditionedJacobi, jacobi_preconditioner_test )
 {
-    int problem_size = 10;
+    int problem_size = 100;
 
     Epetra_SerialComm comm;
     Epetra_Map map( problem_size, 0, comm );

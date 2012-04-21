@@ -30,7 +30,7 @@
 
 TEUCHOS_UNIT_TEST( OperatorTools, spectral_radius_test)
 {
-    int problem_size = 10;
+    int problem_size = 100;
 
     Epetra_SerialComm comm;
     Epetra_Map map( problem_size, 0, comm );

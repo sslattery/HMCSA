@@ -38,13 +38,14 @@ AdjointMC::~AdjointMC()
  */
 void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 {
-    // Setup.
+    // Get the LHS and source.
     Epetra_Vector *x = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetLHS() );
     const Epetra_Vector *b = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
     int N = x->GlobalLength();
 
+    // Setup.
     int state;
     int new_state;
     int init_state;
@@ -81,6 +82,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     // Do random walks for specified number of histories.
     for ( int n = 0; n < num_histories; ++n )
     {
+	// Sample the source to get the initial state.
 	zeta = (double) rand() / RAND_MAX;
 	init_state = std::distance( 
 	    b_cdf.begin(),
@@ -93,8 +95,10 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 	walk = true;
 	while ( walk )
 	{
+	    // Update LHS.
 	    (*x)[state] += weight * (*b)[init_state];
 
+	    // Sample the CDF to get the next state.
 	    d_C.ExtractGlobalRowCopy( state, 
 				      N, 
 				      C_size, 
@@ -126,6 +130,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 				     H_indices.end(),
 				     state );
 
+	    // Compute new weight.
 	    if ( Q_values[std::distance(Q_indices.begin(),Q_it)] == 0 ||
 		 Q_it == Q_indices.end() )
 	    {
@@ -142,10 +147,12 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 		walk = false;
 	    }
 
+	    // Update the state.
 	    state = new_state;
 	}
     }
 
+    // Normalize.
     for ( int i = 0; i < N; ++i )
     {
 	(*x)[i] /= num_histories;
