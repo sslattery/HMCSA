@@ -65,28 +65,19 @@ void MCSA::iterate( const int max_iters,
 	for ( int i = 0; i < N; ++i )
 	{
 	    (*x)[i] = temp_vec[i] + (*b)[i];
-	    // std::cout << (*x)[i] << " " 
-	    // 	      << (*b)[i] << " " 
-	    // 	      << temp_vec[i] << std::endl;
 	}
-	std::cout << "-----" << std::endl;
+
 	A->Apply( *x, temp_vec );
 	for ( int i = 0; i < N; ++i )
 	{
 	    residual[i] = (*b)[i] - temp_vec[i];
-	    // std::cout << residual[i] << " " 
-	    // 	      << (*b)[i] << " " 
-	    // 	      << temp_vec[i] << std::endl;
 	}
-	std::cout << "------------------" << std::endl;
 	mc_solver.walk( num_histories, weight_cutoff );
 
 	for ( int i = 0; i < N; ++i )
 	{
 	    (*x)[i] += delta_x[i];
-//	    std::cout << (*x)[i] << " " << delta_x[i] << std::endl;
 	}
-	std::cout << "=======================" << std::endl;
 	residual.NormInf( &residual_norm );
 	++d_num_iters;
     }
