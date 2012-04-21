@@ -84,7 +84,7 @@ buildH( const Teuchos::RCP<Epetra_CrsMatrix> &A)
 
 TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 {
-    int N = 20;
+    int N = 50;
     int problem_size = N*N;
 
     // Build operator.
@@ -164,7 +164,7 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 
     // MCSA Solve.
     HMCSA::MCSA mcsa_solver( linear_problem );
-    mcsa_solver.iterate( 1000, 1.0e-8, 100, 1.0e-8 );
+    mcsa_solver.iterate( 10000, 1.0e-8, 100, 1.0e-8 );
     std::cout << "MCSA ITERS: " << mcsa_solver.getNumIters() << std::endl;
 
     // Aztec GMRES Solve.

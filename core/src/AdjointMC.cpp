@@ -8,6 +8,7 @@
 #include <cmath>
 #include <vector>
 #include <iterator>
+#include <algorithm>
 
 #include "AdjointMC.hpp"
 
@@ -42,7 +43,6 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetLHS() );
     const Epetra_Vector *b = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
-    Epetra_Vector b_cdf = *b;
     int N = x->GlobalLength();
 
     int state;
@@ -52,8 +52,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     double zeta;
     double relative_cutoff;
     bool walk;
-    bool cdf_inverted;
-    bool source_inverted;
+    std::vector<double> b_cdf( N );
     std::vector<double> H_values( N );
     std::vector<int> H_indices( N );
     int H_size;
@@ -67,11 +66,12 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     std::vector<int>::iterator H_it;
 
     // Build source cdf.
+    b_cdf[0] = (*b)[0];
     double b_norm = b_cdf[0];
     for ( int i = 1; i < N; ++i )
     {
-	b_norm += b_cdf[i];
-	b_cdf[i] += b_cdf[i-1];	
+	b_norm += (*b)[i];
+	b_cdf[i] = (*b)[i] + b_cdf[i-1];	
     }
     for ( int i = 0; i < N; ++i )
     {
@@ -82,15 +82,9 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     for ( int n = 0; n < num_histories; ++n )
     {
 	zeta = (double) rand() / RAND_MAX;
-	source_inverted = false;
-	for ( int j = 0; j < N; ++j )
-	{
-	    if ( zeta < b_cdf[j] && !source_inverted )
-	    {
-		init_state = j;
-		source_inverted = true;
-	    }
-	}
+	init_state = std::distance( 
+	    b_cdf.begin(),
+	    std::lower_bound( b_cdf.begin(), b_cdf.end(), zeta ) );
 
 	// Random walk.
 	weight = b_norm / (*b)[init_state];
@@ -106,16 +100,12 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 				      C_size, 
 				      &C_values[0], 
 				      &C_indices[0] );
+
 	    zeta = (double) rand() / RAND_MAX;
-	    cdf_inverted = false;
-	    for ( int j = 0; j < C_size; ++j )
-	    {
-		if ( zeta < C_values[j] && !cdf_inverted )
-		{
-		    new_state = C_indices[j];
-		    cdf_inverted = true;
-		}
-	    }
+	    new_state = std::distance( 
+		C_values.begin(),
+		std::lower_bound( C_values.begin(), C_values.end(), zeta ) );
+
 	    d_Q.ExtractGlobalRowCopy( state, 
 				      N, 
 				      Q_size, 
@@ -128,13 +118,13 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 				      &H_values[0], 
 				      &H_indices[0] );
 
-	    Q_it = std::find( Q_indices.begin(),
-			      Q_indices.end(),
-			      new_state );
+	    Q_it = std::lower_bound( Q_indices.begin(),
+				     Q_indices.end(),
+				     new_state );
 		
-	    H_it = std::find( H_indices.begin(),
-			      H_indices.end(),
-			      state );
+	    H_it = std::lower_bound( H_indices.begin(),
+				     H_indices.end(),
+				     state );
 
 	    if ( Q_values[std::distance(Q_indices.begin(),Q_it)] == 0 ||
 		 Q_it == Q_indices.end() )
