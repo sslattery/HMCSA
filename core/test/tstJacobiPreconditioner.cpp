@@ -12,7 +12,6 @@
 #include <sstream>
 #include <ostream>
 
-#include "HMCSATypes.hpp"
 #include "OperatorTools.hpp"
 #include "JacobiPreconditioner.hpp"
 

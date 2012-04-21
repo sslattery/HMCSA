@@ -12,6 +12,7 @@
 #include <sstream>
 #include <ostream>
 
+#include "AdjointMC.hpp"
 #include "MCSA.hpp"
 #include "OperatorTools.hpp"
 #include "JacobiPreconditioner.hpp"
@@ -29,6 +30,53 @@
 #include <Epetra_LinearProblem.h>
 
 #include <AztecOO.h>
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+
+Teuchos::RCP<Epetra_CrsMatrix>
+buildH( const Teuchos::RCP<Epetra_CrsMatrix> &A)
+{
+    Teuchos::RCP<Epetra_CrsMatrix> H = Teuchos::rcp( 
+	new Epetra_CrsMatrix(Copy, A->RowMap(), A->GlobalMaxNumEntries() ) );
+    int N = A->NumGlobalRows();
+    std::vector<double> A_values( N );
+    std::vector<int> A_indices( N );
+    int A_size = 0;
+    double local_H;
+    bool found_diag = false;
+    for ( int i = 0; i < N; ++i )
+    {
+	A->ExtractGlobalRowCopy( i,
+				 N, 
+				 A_size, 
+				 &A_values[0], 
+				 &A_indices[0] );
+
+	for ( int j = 0; j < A_size; ++j )
+	{
+	    if ( i == A_indices[j] )
+	    {
+		local_H = 1.0 - A_values[j];
+		H->InsertGlobalValues( i, 1, &local_H, &A_indices[j] );
+		found_diag = true;
+	    }
+	    else
+	    {
+		local_H = -A_values[j];
+		H->InsertGlobalValues( i, 1, &local_H, &A_indices[j] );
+	    }
+	}
+	if ( !found_diag )
+	{
+	    local_H = 1.0;
+	    H->InsertGlobalValues( i, 1, &local_H, &i );
+	}
+    }
+    H->FillComplete();
+    return H;
+}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -54,11 +102,6 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 						 dx, dy, dt, alpha );
 
     Teuchos::RCP<Epetra_CrsMatrix> A = diffusion_operator.getCrsMatrix();
-
-    double spec_rad_A = HMCSA::OperatorTools::spectralRadius( A );
-    std::cout << std::endl <<
-	"Operator spectral radius: " << spec_rad_A << std::endl;
-
     Epetra_Map map = A->RowMap();
 
     // Solution Vectors.
@@ -102,13 +145,20 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 	new Epetra_LinearProblem( A.getRawPtr(), &x, &b ) );
 
     // MCSA Precondition.
+    Teuchos::RCP<Epetra_CrsMatrix> H = buildH( A );
+    double spec_rad_H = HMCSA::OperatorTools::spectralRadius( H );
+    std::cout << std::endl <<
+	"Iteration matrix spectral radius: " << spec_rad_H << std::endl;
+
     HMCSA::JacobiPreconditioner preconditioner;
     preconditioner.precondition( linear_problem );
 
-    double spec_rad_precond_A = 
-	HMCSA::OperatorTools::spectralRadius( preconditioner.getOperator() );
-    std::cout << std::endl << "Preconditioned Operator spectral radius: " 
-	      << spec_rad_precond_A << std::endl;
+    H = buildH( preconditioner.getOperator() );
+    double spec_rad_precond_H = 
+	HMCSA::OperatorTools::spectralRadius( H );
+    std::cout << std::endl 
+	      << "Preconditioned iteration matrix spectral radius: "
+	      << spec_rad_precond_H << std::endl;
 
     // MCSA Solve.
     HMCSA::MCSA mcsa_solver( linear_problem );
