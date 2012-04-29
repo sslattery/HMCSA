@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <cassert>
 #include <vector>
 #include <iterator>
 #include <algorithm>
@@ -44,6 +45,9 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     const Epetra_Vector *b = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
     int N = x->GlobalLength();
+    int n_H = d_H.GlobalMaxNumEntries();
+    int n_Q = d_Q.GlobalMaxNumEntries();
+    int n_C = d_C.GlobalMaxNumEntries();
 
     // Setup.
     int state;
@@ -55,14 +59,14 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     double relative_cutoff;
     bool walk;
     std::vector<double> b_cdf( N );
-    std::vector<double> H_values( N );
-    std::vector<int> H_indices( N );
+    std::vector<double> H_values( n_H );
+    std::vector<int> H_indices( n_H );
     int H_size;
-    std::vector<double> Q_values( N );
-    std::vector<int> Q_indices( N );
+    std::vector<double> Q_values( n_Q );
+    std::vector<int> Q_indices( n_Q );
     int Q_size;
-    std::vector<double> C_values( N );
-    std::vector<int> C_indices( N );
+    std::vector<double> C_values( n_C );
+    std::vector<int> C_indices( n_C );
     int C_size;
     std::vector<int>::iterator Q_it;
     std::vector<int>::iterator H_it;
@@ -101,27 +105,28 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 
 	    // Sample the CDF to get the next state.
 	    d_C.ExtractGlobalRowCopy( state, 
-				      N, 
-				      C_size, 
-				      &C_values[0], 
-				      &C_indices[0] );
+	    			      n_C, 
+	    			      C_size, 
+	    			      &C_values[0], 
+	    			      &C_indices[0] );
 
 	    zeta = (double) rand() / RAND_MAX;
 	    new_index = std::distance( 
-		C_values.begin(),
-		std::lower_bound( C_values.begin(), 
-				  C_values.begin()+C_size,
-				  zeta ) );
+	    	C_values.begin(),
+	    	std::lower_bound( C_values.begin(), 
+	    			  C_values.begin()+C_size,
+	    			  zeta ) );
 	    new_state = C_indices[ new_index ];
-
+	    
+	    // Get the state components of Q and H.
 	    d_Q.ExtractGlobalRowCopy( state, 
-				      N, 
+				      n_Q, 
 				      Q_size, 
 				      &Q_values[0], 
 				      &Q_indices[0] );
 
 	    d_H.ExtractGlobalRowCopy( new_state, 
-				      N, 
+				      n_H, 
 				      H_size, 
 				      &H_values[0], 
 				      &H_indices[0] );
@@ -157,10 +162,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     }
 
     // Normalize.
-    for ( int i = 0; i < N; ++i )
-    {
-	(*x)[i] /= num_histories;
-    }
+    x->Scale( 1.0 / num_histories );
 }
 
 /*!
@@ -198,14 +200,17 @@ Epetra_CrsMatrix AdjointMC::buildH()
 		local_H = -A_values[j];
 		H.InsertGlobalValues( i, 1, &local_H, &A_indices[j] );
 	    }
-	}
-	if ( !found_diag )
-	{
-	    local_H = 1.0;
-	    H.InsertGlobalValues( i, 1, &local_H, &i );
+
+	    if ( !found_diag )
+	    {
+		local_H = 1.0;
+		H.InsertGlobalValues( i, 1, &local_H, &i );
+	    }
 	}
     }
+
     H.FillComplete();
+    H.OptimizeStorage();
     return H;
 }
 
@@ -216,20 +221,21 @@ Epetra_CrsMatrix AdjointMC::buildQ()
 {
     Epetra_CrsMatrix Q( Copy, d_H.RowMap(), d_H.GlobalMaxNumEntries() );
     int N = d_H.NumGlobalRows();
+    int n_H = d_H.GlobalMaxNumEntries();
     Epetra_Map h_col_map = d_H.ColMap();
     Epetra_Vector inv_col_sums( h_col_map );
     d_H.InvColSums( inv_col_sums );
-    std::vector<double> H_values( N );
-    std::vector<int> H_indices( N );
+    std::vector<double> H_values( n_H );
+    std::vector<int> H_indices( n_H );
     int H_size = 0;
     double local_Q = 0.0;
     for ( int i = 0; i < N; ++i )
     {
 	d_H.ExtractGlobalRowCopy( i,
-				 N, 
-				 H_size, 
-				 &H_values[0], 
-				 &H_indices[0] );
+				  n_H, 
+				  H_size, 
+				  &H_values[0], 
+				  &H_indices[0] );
 
 	for ( int j = 0; j < H_size; ++j )
 	{
@@ -238,6 +244,7 @@ Epetra_CrsMatrix AdjointMC::buildQ()
 	}
     }
     Q.FillComplete();
+    Q.OptimizeStorage();
     return Q;
 }
 
@@ -247,15 +254,16 @@ Epetra_CrsMatrix AdjointMC::buildQ()
 Epetra_CrsMatrix AdjointMC::buildC()
 {
     int N = d_Q.NumGlobalRows();
+    int n_Q = d_Q.GlobalMaxNumEntries();
     Epetra_CrsMatrix C( Copy, d_Q.RowMap(), d_Q.GlobalMaxNumEntries() );
     double local_C = 0.0;
-    std::vector<double> Q_values( N );
-    std::vector<int> Q_indices( N );
+    std::vector<double> Q_values( n_Q );
+    std::vector<int> Q_indices( n_Q );
     int size_Q = 0;
     for ( int i = 0; i < N; ++i )
     {
 	d_Q.ExtractGlobalRowCopy( i, 
-				  N, 
+				  n_Q, 
 				  size_Q, 
 				  &Q_values[0], 
 				  &Q_indices[0] );
@@ -268,6 +276,7 @@ Epetra_CrsMatrix AdjointMC::buildC()
 	}
     }
     C.FillComplete();
+    C.OptimizeStorage();
     return C;
 }
 

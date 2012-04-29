@@ -5,88 +5,113 @@
 //---------------------------------------------------------------------------//
 
 #include <iostream>
+#include <vector>
 
 #include "DiffusionOperator.hpp"
-#include "MCSA.hpp"
 #include "TimeIntegrator.hpp"
-#include "OperatorTools.hpp"
+#include "JacobiPreconditioner.hpp"
+#include "HMCSATypes.hpp"
 #include "VtkWriter.hpp"
 
 #include <Teuchos_RCP.hpp>
-#include <Teuchos_ArrayRCP.hpp>
-#include <Teuchos_ParameterList.hpp>
 
+#include <Epetra_Map.h>
 #include <Epetra_Vector.h>
+#include <Epetra_CrsMatrix.h>
 #include <Epetra_LinearProblem.h>
 
-int main( int argc, void** argv )
+//---------------------------------------------------------------------------//
+// Build the source with boundary and initial conditions.
+void buildIC( std::vector<double> &source, const int N,
+	      const double dirichlet_val )
+{
+   int idx;
+    for ( int j = 1; j < N-1; ++j )
+    {
+	int i = 0;
+	idx = i + j*N;
+	source[idx] = dirichlet_val;
+    }
+    for ( int j = 1; j < N-1; ++j )
+    {
+	int i = N-1;
+	idx = i + j*N;
+	source[idx] = dirichlet_val;
+    }
+    for ( int i = 0; i < N; ++i )
+    {
+	int j = 0;
+	idx = i + j*N;
+	source[idx] = dirichlet_val;
+    }
+    for ( int i = 0; i < N; ++i )
+    {
+	int j = N-1;
+	idx = i + j*N;
+	source[idx] = dirichlet_val;
+    }
+}
+
+//---------------------------------------------------------------------------//
+int main( int argc, char** argv )
 {
     // Problem parameters.
-    Teuchos::ParameterList parameter_list("problem1");
+    int N = 10;
+    int problem_size = N*N;
+    double x_min = 0.0;
+    double x_max = 1.0;
+    double y_min = 0.0;
+    double y_max = 1.0;
+    double bc_val = 10.0;
+    double dx = 0.01;
+    double dy = 0.01;
+    double dt = 0.005;
+    double alpha = 0.01;
+    int num_steps = 1;
+    int max_iters = 1000;
+    double tolerance = 1.0e-8;
+    int num_histories = 100;
+    double weight_cutoff = 1.0e-8;
 
-    // Grid.
-    parameter_list.set( "X Min", 0.0 );
-    parameter_list.set( "X Max", 1.0 );
-    parameter_list.set( "Y Min", 0.0 );
-    parameter_list.set( "Y Max", 1.0 );
-    parameter_list.set( "Grid Size", 0.01 );
+    // Setup up a VTK mesh for output.
+    HMCSA::VtkWriter vtk_writer( x_min, x_max, y_min, y_max,
+				 dx, dy, N, N );
 
-    // Time Step.
-    parameter_list.set( "Time Step Size", 0.001 );
-    parameter_list.set( "Final Time", 0.01 );
+    // Build the Diffusion operator.
+    HMCSA::DiffusionOperator diffusion_operator(
+	HMCSA::HMCSA_DIRICHLET,
+	HMCSA::HMCSA_DIRICHLET,
+	HMCSA::HMCSA_DIRICHLET,
+	HMCSA::HMCSA_DIRICHLET,
+	bc_val, bc_val, bc_val, bc_val,
+	N, N,
+	dx, dy, dt, alpha );
 
-    // Dirichlet Conditions.
-    parameter_list.set( "X Min Boundary", 0.0 );
-    parameter_list.set( "X Max Boundary", 1.0 );
-    parameter_list.set( "Y_Min Boundary", 0.0 );
-    parameter_list.set( "Y_Max Boundary", 1.0 );
+    Teuchos::RCP<Epetra_CrsMatrix> A = diffusion_operator.getCrsMatrix();
+    Epetra_Map map = A->RowMap();
 
-    // Initial Conditions.
-    parameter_list.set( "Initial Value", 10.0 );    
-
-    // Solver.
-    parameter_list.set( "Solver", "MCSA" );
-    parameter_list.set( "Histories", 1000 );
-    parameter_list.set( "Cutoff Weight", 1.0E-12 );
-    parameter_list.set( "Max Iterations", 100 );
-    parameter_list.set( "Tolerance", 1.0e-8 );
-
-    // Epetra map setup.
-    Epetra_Map map;
-
-    // Create the solution vector and assign initial conditons.
-    Teuchos::ArrayRCP<double> u_array;
-    Epetra_Vector u( View, map, u.get() );
-
-    // Create the right hand side.
-    Teuchos::ArrayRCP<double> b_array;
-    Epetra_Vector b( View, map, b.get() );
+    // Solution Vector.
+    std::vector<double> x_vector( problem_size );
+    Epetra_Vector x( View, map, &x_vector[0] );
     
-    // Create the operator.
-    HMCSA::DiffusionOperator A( parameter_list );
+    // Build source - set intial and Dirichlet boundary conditions.
+    std::vector<double> b_vector( problem_size, 1.0 );
+    buildIC( b_vector, N, bc_val );
+    Epetra_Vector b( View, map, &b_vector[0] );
 
-    // Create the linear problem.
-    Epetra_LinearProblem linear_problem( A.getCrsMatrix(), u, b );
+    // Linear problem.
+    Teuchos::RCP<Epetra_LinearProblem> linear_problem = Teuchos::rcp(
+    	new Epetra_LinearProblem( A.getRawPtr(), &x, &b ) );
 
-    // Compute the spectral radius of the operator.
-    double spectral_radius = 
-	HMCSA::OperatorTools::spectralRadius( A.getCrsMatrix() );
+    // Jacobi precondition.
+    HMCSA::JacobiPreconditioner preconditioner;
+    preconditioner.precondition( linear_problem );
 
-    // Create a solver.
-    HMCSA::MCSA linear_solver;
-
-    // Create a time integrator.
-    HMCSA::TimeIntegrator time_integrator( parameter_list, 
-					   linear_solver, 
-					   linear_problem );
-
-    // Integrate.
-    time_integrator.integrate();
-
-    // Write to vtk.
-    VtkWriter vtk_writer( parameter_list );
-    vtk_writer.addVector( u_array, "u" );
-    vtk_writer.write();
+    // Time step.
+    HMCSA::TimeIntegrator time_integrator( linear_problem, vtk_writer );
+    time_integrator.integrate( num_steps, max_iters, 
+			       tolerance, num_histories,
+			       weight_cutoff );    
 
     return 0;
 }

@@ -37,6 +37,9 @@ TEUCHOS_UNIT_TEST( Epetra_Vector, epetra_vector_test)
     Epetra_Map map( (int) data.size(), 0, comm );
     Epetra_Vector epetra_vector( View, map, data.get() );
 
+    Teuchos::ArrayRCP<double> update_array(10, 1.0);
+    Epetra_Vector update_vector( View, map, update_array.get() );
+
     Teuchos::ArrayRCP<double>::const_iterator const_it;
     for ( int i = 0; i < (int) data.size(); ++i )
     {
@@ -81,6 +84,14 @@ TEUCHOS_UNIT_TEST( Epetra_Vector, epetra_vector_test)
 	TEST_ASSERT( data[i] == 10.0 );
     }
 
+    error = epetra_vector.Update( -1.0, update_vector, 1.0 );
+    TEST_ASSERT( error == 0 );
+    for ( int i = 3; i < 7; ++i )
+    {
+	TEST_ASSERT( epetra_vector[i] == 9.0 );
+	TEST_ASSERT( data[i] == 9.0 );
+    }
+
     double norm_2 = 0.0;
     for ( int i = 0; i < (int) data.size(); ++i )
     {
@@ -96,7 +107,7 @@ TEUCHOS_UNIT_TEST( Epetra_Vector, epetra_vector_test)
     double inf_norm = 0;
     error = epetra_vector.NormInf( &inf_norm );
     TEST_ASSERT( error == 0 );
-    TEST_ASSERT( inf_norm == 10.0 );
+    TEST_ASSERT( inf_norm == 9.0 );
 }
 
 TEUCHOS_UNIT_TEST( Epetra_CrsMatrix, epetra_crsmatrix_test)

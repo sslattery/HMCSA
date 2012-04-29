@@ -56,7 +56,6 @@ class AdjointMC
 
     // Build the cumulative distribution function.
     Epetra_CrsMatrix buildC();
-
 };
 
 } // end namespace HMCSA

@@ -1,6 +1,7 @@
 # CMakeLists.txt for src
 
 INCLUDE(TribitsLibraryMacros)
+INCLUDE(TribitsAddExecutableAndTest)
 
 #
 # A) Package-specific configuration options
@@ -12,6 +13,7 @@ INCLUDE(TribitsLibraryMacros)
 
 SET(HEADERS "")
 SET(SOURCES "")
+SET(PROGSRC hmcsa.cpp)
 
 # Set headers (for IDEs and installing)
 
@@ -30,6 +32,7 @@ APPEND_SET(HEADERS
   MCSA.hpp
   OperatorTools.hpp
   SequentialMC.hpp
+  TimeIntegrator.hpp
   VtkWriter.hpp
   )
 
@@ -45,6 +48,7 @@ APPEND_SET(SOURCES
   MCSA.cpp
   OperatorTools.cpp
   SequentialMC.cpp
+  TimeIntegrator.cpp
   VtkWriter.cpp
   )
 
@@ -74,3 +78,12 @@ INSTALL(FILES
   ${HEADERS} 
   DESTINATION 
   ${CMAKE_INSTALL_PREFIX}/include/hmcsa/)
+
+TRIBITS_ADD_EXECUTABLE(
+  hmcsa
+  NOEXESUFFIX
+  NOEXEPREFIX
+  SOURCES ${PROGSRC}
+  LINKER_LANGUAGE CXX
+  INSTALLABLE
+)

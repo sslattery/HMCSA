@@ -53,7 +53,6 @@ void MCSA::iterate( const int max_iters,
     // Iterate.
     Epetra_CrsMatrix H = mc_solver.getH();
     Epetra_Vector temp_vec( row_map );
-    int N = A->NumGlobalRows();
     d_num_iters = 0;
     double residual_norm = 1.0;
     double b_norm;
@@ -61,23 +60,21 @@ void MCSA::iterate( const int max_iters,
     double conv_crit = b_norm*tolerance;
     while ( residual_norm > conv_crit && d_num_iters < max_iters )
     {
+	// Richardson iteration.
 	H.Apply( *x, temp_vec );
-	for ( int i = 0; i < N; ++i )
-	{
-	    (*x)[i] = temp_vec[i] + (*b)[i];
-	}
+	x->Update( 1.0, temp_vec, 1.0, *b, 0.0 );
 
+	// Compute the residual.
 	A->Apply( *x, temp_vec );
-	for ( int i = 0; i < N; ++i )
-	{
-	    residual[i] = (*b)[i] - temp_vec[i];
-	}
+	residual.Update( 1.0, *b, -1.0, temp_vec, 0.0 );
+
+	// Solve for delta_x.
 	mc_solver.walk( num_histories, weight_cutoff );
 
-	for ( int i = 0; i < N; ++i )
-	{
-	    (*x)[i] += delta_x[i];
-	}
+	// Apply delta_x.
+	x->Update( 1.0, delta_x, 1.0 );
+
+	// Update convergence check.
 	residual.NormInf( &residual_norm );
 	++d_num_iters;
     }

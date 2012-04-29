@@ -84,14 +84,14 @@ buildH( const Teuchos::RCP<Epetra_CrsMatrix> &A)
 
 TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 {
-    int N = 50;
+    int N = 100;
     int problem_size = N*N;
 
     // Build the diffusion operator.
     double bc_val = 10.0;
     double dx = 0.01;
     double dy = 0.01;
-    double dt = 0.05;
+    double dt = 0.005;
     double alpha = 0.01;
     HMCSA::DiffusionOperator diffusion_operator(
 	HMCSA::HMCSA_DIRICHLET,
@@ -143,25 +143,25 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 
     // MCSA Linear problem.
     Teuchos::RCP<Epetra_LinearProblem> linear_problem = Teuchos::rcp(
-	new Epetra_LinearProblem( A.getRawPtr(), &x, &b ) );
+    	new Epetra_LinearProblem( A.getRawPtr(), &x, &b ) );
 
     // MCSA Jacobi precondition.
     Teuchos::RCP<Epetra_CrsMatrix> H = buildH( A );
     double spec_rad_H = HMCSA::OperatorTools::spectralRadius( H );
     std::cout << std::endl << std::endl
-	      << "---------------------" << std::endl
-	      << "Iteration matrix spectral radius: " 
-	      << spec_rad_H << std::endl;
+    	      << "---------------------" << std::endl
+    	      << "Iteration matrix spectral radius: " 
+    	      << spec_rad_H << std::endl;
 
     HMCSA::JacobiPreconditioner preconditioner;
     preconditioner.precondition( linear_problem );
 
     H = buildH( preconditioner.getOperator() );
     double spec_rad_precond_H = 
-	HMCSA::OperatorTools::spectralRadius( H );
+    	HMCSA::OperatorTools::spectralRadius( H );
     std::cout << "Preconditioned iteration matrix spectral radius: "
-	      << spec_rad_precond_H << std::endl
-	      << "---------------------" << std::endl;
+    	      << spec_rad_precond_H << std::endl
+    	      << "---------------------" << std::endl;
 
     // MCSA Solve.
     HMCSA::MCSA mcsa_solver( linear_problem );
@@ -170,7 +170,7 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 
     // Aztec GMRES Solve.
     Teuchos::RCP<Epetra_LinearProblem> aztec_linear_problem = Teuchos::rcp(
-	new Epetra_LinearProblem( A.getRawPtr(), &x_aztec, &b ) );
+    	new Epetra_LinearProblem( A.getRawPtr(), &x_aztec, &b ) );
     AztecOO aztec_solver( *aztec_linear_problem );
     aztec_solver.SetAztecOption( AZ_solver, AZ_gmres );
     aztec_solver.Iterate( 100, 1.0e-8 );
@@ -180,17 +180,17 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     Epetra_Vector error( View, map, &error_vector[0] );
     for (int i = 0; i < problem_size; ++i)
     {
-	error[i] = x[i] - x_aztec[i];
+    	error[i] = x[i] - x_aztec[i];
     }
     double error_norm;
     error.Norm2( &error_norm );
     std::cout << std::endl << 
-	"Aztec GMRES vs. MCSA absolute error L2 norm: " << 
-	error_norm << std::endl;    
+    	"Aztec GMRES vs. MCSA absolute error L2 norm: " << 
+    	error_norm << std::endl;    
 
     // Write the results to file.
     HMCSA::VtkWriter vtk_writer( 0.0, 1.0, 0.0, 1.0,
-				 dx, dy, N, N );
+    				 dx, dy, N, N );
     vtk_writer.write_vector( x_vector, "mcsa" );
 }
 
