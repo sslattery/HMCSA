@@ -82,6 +82,16 @@ VtkWriter::VtkWriter( const double x_min,
 	    assert( moab::MB_SUCCESS == rval );
 	}
     }
+
+    // Create the tag.
+    moab::Tag u_tag;
+    rval = d_MBI->tag_create("u", 
+			   sizeof(double),
+			   moab::MB_TAG_DENSE,
+			   moab::MB_TYPE_DOUBLE,
+			   u_tag, 
+			   0);
+    assert(moab::MB_SUCCESS == rval);
 }
 
 
@@ -95,17 +105,15 @@ VtkWriter::~VtkWriter()
 void VtkWriter::write_vector( const std::vector<double> &u,
 			      const std::string &name )
 {
-    // error value
+    // Error value.
     moab::ErrorCode rval;
 
-    // tag the vertices
+    // Tag the vertices.
     moab::Tag u_tag;
-    rval = d_MBI->tag_create("u", 
-			   sizeof(double),
-			   moab::MB_TAG_DENSE,
-			   moab::MB_TYPE_DOUBLE,
-			   u_tag, 
-			   0);
+    rval = d_MBI->tag_get_handle( "u", 
+				  1,
+				  moab::MB_TYPE_DOUBLE,
+				  u_tag );
     assert(moab::MB_SUCCESS == rval);
 
     std::string filename = "time" + name + ".vtk";

@@ -67,7 +67,7 @@ int main( int argc, char** argv )
     double dy = 0.01;
     double dt = 0.005;
     double alpha = 0.01;
-    int num_steps = 1;
+    int num_steps = 2;
     int max_iters = 1000;
     double tolerance = 1.0e-8;
     int num_histories = 100;
