@@ -132,6 +132,7 @@ void DiffusionOperator::build_diffusion_operator( const int num_x,
     }
 
     d_matrix->FillComplete();
+    d_matrix->OptimizeStorage();
 }
 
 } // end namespace HMCSA

@@ -22,33 +22,35 @@
 
 //---------------------------------------------------------------------------//
 // Build the source with boundary and initial conditions.
-void buildIC( std::vector<double> &source, const int N,
-	      const double dirichlet_val )
+void buildIC( std::vector<double> &source, 
+	      const int xN, const int yN,
+	      const double bc_val_xmin, const double bc_val_xmax, 
+	      const double bc_val_ymin, const double bc_val_ymax )
 {
    int idx;
-    for ( int j = 1; j < N-1; ++j )
+    for ( int j = 1; j < yN-1; ++j )
     {
 	int i = 0;
-	idx = i + j*N;
-	source[idx] = dirichlet_val;
+	idx = i + j*xN;
+	source[idx] = bc_val_xmin;
     }
-    for ( int j = 1; j < N-1; ++j )
+    for ( int j = 1; j < yN-1; ++j )
     {
-	int i = N-1;
-	idx = i + j*N;
-	source[idx] = dirichlet_val;
+	int i = xN-1;
+	idx = i + j*xN;
+	source[idx] = bc_val_xmax;
     }
-    for ( int i = 0; i < N; ++i )
+    for ( int i = 0; i < xN; ++i )
     {
 	int j = 0;
-	idx = i + j*N;
-	source[idx] = dirichlet_val;
+	idx = i + j*xN;
+	source[idx] = bc_val_ymin;
     }
-    for ( int i = 0; i < N; ++i )
+    for ( int i = 0; i < xN; ++i )
     {
-	int j = N-1;
-	idx = i + j*N;
-	source[idx] = dirichlet_val;
+	int j = yN-1;
+	idx = i + j*xN;
+	source[idx] = bc_val_ymax;
     }
 }
 
@@ -56,26 +58,31 @@ void buildIC( std::vector<double> &source, const int N,
 int main( int argc, char** argv )
 {
     // Problem parameters.
-    int N = 10;
-    int problem_size = N*N;
+    int xN = 20;
+    int yN = 50;
+    int problem_size = xN*yN;
     double x_min = 0.0;
     double x_max = 1.0;
     double y_min = 0.0;
     double y_max = 1.0;
-    double bc_val = 10.0;
-    double dx = 0.01;
-    double dy = 0.01;
-    double dt = 0.005;
-    double alpha = 0.01;
+    double ic_val = 10.0;
+    double bc_val_xmin = 10.0;
+    double bc_val_xmax = 10.0;
+    double bc_val_ymin = 0.0;
+    double bc_val_ymax = 10.0;
+    double dx = 0.001;
+    double dy = 0.001;
+    double dt = 0.05;
+    double alpha = 0.001;
     int num_steps = 2;
-    int max_iters = 1000;
+    int max_iters = 10000;
     double tolerance = 1.0e-8;
     int num_histories = 100;
     double weight_cutoff = 1.0e-8;
 
     // Setup up a VTK mesh for output.
     HMCSA::VtkWriter vtk_writer( x_min, x_max, y_min, y_max,
-				 dx, dy, N, N );
+				 dx, dy, xN, yN );
 
     // Build the Diffusion operator.
     HMCSA::DiffusionOperator diffusion_operator(
@@ -83,8 +90,8 @@ int main( int argc, char** argv )
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
-	bc_val, bc_val, bc_val, bc_val,
-	N, N,
+	bc_val_xmin, bc_val_xmax, bc_val_ymin, bc_val_ymax,
+	xN, yN,
 	dx, dy, dt, alpha );
 
     Teuchos::RCP<Epetra_CrsMatrix> A = diffusion_operator.getCrsMatrix();
@@ -95,8 +102,9 @@ int main( int argc, char** argv )
     Epetra_Vector x( View, map, &x_vector[0] );
     
     // Build source - set intial and Dirichlet boundary conditions.
-    std::vector<double> b_vector( problem_size, 1.0 );
-    buildIC( b_vector, N, bc_val );
+    std::vector<double> b_vector( problem_size, ic_val );
+    buildIC( b_vector, xN, yN,
+	     bc_val_xmin, bc_val_xmax, bc_val_ymin, bc_val_ymax );
     Epetra_Vector b( View, map, &b_vector[0] );
 
     // Linear problem.

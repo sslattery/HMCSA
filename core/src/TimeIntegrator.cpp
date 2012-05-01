@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <iostream>
 
 #include <Epetra_Vector.h>
 
@@ -40,16 +41,22 @@ void TimeIntegrator::integrate( const int num_steps,
 				const int num_histories,
 				const double weight_cutoff )
 {
+
+    // Do time steps.
     for ( int n = 0; n < num_steps; ++n )
     {
 	// Solve A u^(n+1) = u^n
 	d_solver.iterate( max_iters, tolerance, num_histories, weight_cutoff );
-	
+
 	// Write this time step to file.
 	writeStep( n );
 
 	// u^n <- u^(n+1)
 	buildSource();
+
+	// Output.
+	std::cout << "TIME STEP " << n << ": " << d_solver.getNumIters()
+		  << " MCSA iterations to converge." << std::endl;
     }
 }
 
