@@ -63,12 +63,12 @@ void TimeIntegrator::integrate( const int num_steps,
 
 	// Output.
 	std::cout << "TIME STEP " << n << ": " << d_solver.getNumIters()
-		  << " MCSA iterations to converge." << std::endl;
+		  << " MCSA iterations" << std::endl;
     }
 }
 
 /*!
- * \brief Build the source.
+ * \brief Build the source. u^n <- u^(n+1)
  */
 void TimeIntegrator::buildSource()
 {

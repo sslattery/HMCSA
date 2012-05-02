@@ -57,24 +57,30 @@ void buildIC( std::vector<double> &source,
 int main( int argc, char** argv )
 {
     // Problem parameters.
-    int xN = 10;
+    int xN = 30;
     int yN = 30;
     int problem_size = xN*yN;
+
     double x_min = 0.0;
     double x_max = 1.0;
     double y_min = 0.0;
     double y_max = 1.0;
+
     double ic_val = 10.0;
     double bc_val_xmin = 10.0;
     double bc_val_xmax = 10.0;
     double bc_val_ymin = 0.0;
-    double bc_val_ymax = 10.0;
-    double dx = 0.001;
-    double dy = 0.001;
-    double dt = 0.005;
-    double alpha = 0.001;
-    int num_steps = 2;
-    int max_iters = 10000;
+    double bc_val_ymax = 0.0;
+
+    int num_steps = 100;
+    double T = 2.0;
+
+    double dx = (x_max-x_min)/(xN-1);
+    double dy = (y_max-y_min)/(yN-1);
+    double dt = T / num_steps;
+    double alpha = 0.1;
+
+    int max_iters = 1000;
     double tolerance = 1.0e-8;
     int num_histories = 100;
     double weight_cutoff = 1.0e-8;
