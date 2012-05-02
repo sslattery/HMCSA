@@ -8,6 +8,7 @@
 #define HMCSA_TIMEINTEGRATOR_HPP
 
 #include "MCSA.hpp"
+#include "JacobiPreconditioner.hpp"
 #include "VtkWriter.hpp"
 
 #include <Teuchos_RCP.hpp>
@@ -26,6 +27,9 @@ class TimeIntegrator
 
     // MCSA solver.
     MCSA d_solver;
+
+    // Jacobi preconditioner.
+    JacobiPreconditioner d_preconditioner;
 
     // VTK writer.
     VtkWriter d_vtk_writer;

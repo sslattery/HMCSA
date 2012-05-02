@@ -78,8 +78,8 @@ TEUCHOS_UNIT_TEST( PreconditionedJacobi, jacobi_preconditioner_test )
     std::cout << "Operator Spectral Radius: " 
 	      << spec_rad_A << std::endl;
 
-    HMCSA::JacobiPreconditioner preconditioner;
-    preconditioner.precondition( linear_problem );
+    HMCSA::JacobiPreconditioner preconditioner( linear_problem );
+    preconditioner.precondition();
 
     Teuchos::RCP<Epetra_CrsMatrix> precond_A
 	= preconditioner.getOperator();

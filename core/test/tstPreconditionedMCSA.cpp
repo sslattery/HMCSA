@@ -84,8 +84,8 @@ TEUCHOS_UNIT_TEST( MCSA, MCSA_test)
     Teuchos::RCP<Epetra_LinearProblem> linear_problem = Teuchos::rcp(
 	new Epetra_LinearProblem( A.getRawPtr(), &x, &b ) );
 
-    HMCSA::JacobiPreconditioner preconditioner;
-    preconditioner.precondition( linear_problem );
+    HMCSA::JacobiPreconditioner preconditioner( linear_problem );
+    preconditioner.precondition();
 
     HMCSA::MCSA mcsa_solver( linear_problem );
     mcsa_solver.iterate( 100, 1.0e-8, 100, 1.0e-8 );

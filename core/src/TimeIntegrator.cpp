@@ -19,10 +19,12 @@ namespace HMCSA
 /*!
  * \brief Constructor.
  */
-TimeIntegrator::TimeIntegrator( Teuchos::RCP<Epetra_LinearProblem> &linear_problem,
-				const VtkWriter &vtk_writer )
+TimeIntegrator::TimeIntegrator( 
+    Teuchos::RCP<Epetra_LinearProblem> &linear_problem,
+    const VtkWriter &vtk_writer )
     : d_linear_problem( linear_problem )
     , d_solver( d_linear_problem )
+    , d_preconditioner( d_linear_problem )
     , d_vtk_writer( vtk_writer )
 { /* ... */ }
 
@@ -41,10 +43,15 @@ void TimeIntegrator::integrate( const int num_steps,
 				const int num_histories,
 				const double weight_cutoff )
 {
+    // Precondition the operator before we start time stepping.
+    d_preconditioner.preconditionOperator();
 
     // Do time steps.
     for ( int n = 0; n < num_steps; ++n )
     {
+	// Jacobi precondition the RHS. The operator doesn't change.
+	d_preconditioner.preconditionRHS();
+
 	// Solve A u^(n+1) = u^n
 	d_solver.iterate( max_iters, tolerance, num_histories, weight_cutoff );
 

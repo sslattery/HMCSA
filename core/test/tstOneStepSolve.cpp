@@ -153,8 +153,8 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     	      << "Iteration matrix spectral radius: " 
     	      << spec_rad_H << std::endl;
 
-    HMCSA::JacobiPreconditioner preconditioner;
-    preconditioner.precondition( linear_problem );
+    HMCSA::JacobiPreconditioner preconditioner( linear_problem );
+    preconditioner.precondition();
 
     H = buildH( preconditioner.getOperator() );
     double spec_rad_precond_H = 

@@ -9,7 +9,6 @@
 
 #include "DiffusionOperator.hpp"
 #include "TimeIntegrator.hpp"
-#include "JacobiPreconditioner.hpp"
 #include "HMCSATypes.hpp"
 #include "VtkWriter.hpp"
 
@@ -58,8 +57,8 @@ void buildIC( std::vector<double> &source,
 int main( int argc, char** argv )
 {
     // Problem parameters.
-    int xN = 20;
-    int yN = 50;
+    int xN = 10;
+    int yN = 30;
     int problem_size = xN*yN;
     double x_min = 0.0;
     double x_max = 1.0;
@@ -72,7 +71,7 @@ int main( int argc, char** argv )
     double bc_val_ymax = 10.0;
     double dx = 0.001;
     double dy = 0.001;
-    double dt = 0.05;
+    double dt = 0.005;
     double alpha = 0.001;
     int num_steps = 2;
     int max_iters = 10000;
@@ -110,10 +109,6 @@ int main( int argc, char** argv )
     // Linear problem.
     Teuchos::RCP<Epetra_LinearProblem> linear_problem = Teuchos::rcp(
     	new Epetra_LinearProblem( A.getRawPtr(), &x, &b ) );
-
-    // Jacobi precondition.
-    HMCSA::JacobiPreconditioner preconditioner;
-    preconditioner.precondition( linear_problem );
 
     // Time step.
     HMCSA::TimeIntegrator time_integrator( linear_problem, vtk_writer );
