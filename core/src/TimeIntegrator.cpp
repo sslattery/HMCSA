@@ -89,7 +89,7 @@ void TimeIntegrator::writeStep( const int step_number )
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetLHS() );
 
     int N = x->GlobalLength();
-    std::vector<double> step_solution(N);
+    std::vector<double> step_solution( N );
     x->ExtractCopy( &step_solution[0] );
 
     std::stringstream convert;

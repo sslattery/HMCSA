@@ -60,17 +60,11 @@ void SequentialMC::iterate( const int max_iters,
     while ( residual_norm > conv_crit && d_num_iters < max_iters )
     {
 	A->Apply( *x, temp_vec );
-	for ( int i = 0; i < N; ++i )
-	{
-	    residual[i] = (*b)[i] - temp_vec[i];
-	}
+	residual.Update( 1.0, *b, -1.0, temp_vec, 0.0 );
 
 	mc_solver.walk( num_histories, weight_cutoff );
 
-	for ( int i = 0; i < N; ++i )
-	{
-	    (*x)[i] += delta_x[i];
-	}
+	x->Update( 1.0, delta_x, 1.0 );
 
 	residual.NormInf( &residual_norm );
 	++d_num_iters;

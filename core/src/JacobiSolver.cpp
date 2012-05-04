@@ -55,16 +55,10 @@ void JacobiSolver::iterate( const int max_iters, const double tolerance )
     while ( residual_norm > conv_crit && d_num_iters < max_iters )
     {
 	H.Apply( *x, temp_vec );
-	for ( int i = 0; i < N; ++i )
-	{
-	    (*x)[i] = temp_vec[i] + (*b)[i];
-	}
+	x->Update( 1.0, temp_vec, 1.0, *b, 0.0 );
 
 	A->Apply( *x, temp_vec );
-	for ( int i = 0; i < N; ++i )
-	{
-	    residual[i] = (*b)[i] - temp_vec[i];
-	}
+	residual.Update( 1.0, *b, -1.0, temp_vec, 0.0 );
 
 	residual.NormInf( &residual_norm );
 	++d_num_iters;

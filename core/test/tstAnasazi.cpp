@@ -102,7 +102,7 @@ TEUCHOS_UNIT_TEST( Anasazi, block_krylov_schur_test)
 							     solver_params);
 
     // Solve the problem
-    Anasazi::ReturnType returnCode = MySolverMan.solve();
+    MySolverMan.solve();
 
     // Get the eigenvalues and eigenvectors from the eigenproblem
     Anasazi::Eigensolution<double,MV> sol = MyProblem->getSolution();
