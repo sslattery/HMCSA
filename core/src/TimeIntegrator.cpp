@@ -6,6 +6,8 @@
 
 #include "TimeIntegrator.hpp"
 
+#include <ctime>
+#include <cstdio>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -46,6 +48,10 @@ void TimeIntegrator::integrate( const int num_steps,
     // Precondition the operator before we start time stepping.
     d_preconditioner.preconditionOperator();
 
+    // Setup a time value for timing.
+    std::clock_t start;
+    double timer;
+    
     // Do time steps.
     for ( int n = 0; n < num_steps; ++n )
     {
@@ -53,7 +59,9 @@ void TimeIntegrator::integrate( const int num_steps,
 	d_preconditioner.preconditionRHS();
 
 	// Solve A u^(n+1) = u^n
+	start = clock();
 	d_solver.iterate( max_iters, tolerance, num_histories, weight_cutoff );
+	timer = (double)(clock() - start) / CLOCKS_PER_SEC;
 
 	// Write this time step to file.
 	writeStep( n );
@@ -63,7 +71,8 @@ void TimeIntegrator::integrate( const int num_steps,
 
 	// Output.
 	std::cout << "TIME STEP " << n << ": " << d_solver.getNumIters()
-		  << " MCSA iterations" << std::endl;
+		  << " MCSA iterations    " 
+		  << timer << " seconds" << std::endl;
     }
 }
 

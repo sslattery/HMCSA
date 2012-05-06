@@ -57,8 +57,8 @@ void buildIC( std::vector<double> &source,
 int main( int argc, char** argv )
 {
     // Problem parameters.
-    int xN = 50;
-    int yN = 60;
+    int xN = 301;
+    int yN = 301;
     int problem_size = xN*yN;
 
     double x_min = 0.0;
@@ -69,11 +69,11 @@ int main( int argc, char** argv )
     double ic_val = 0.0;
     double bc_val_xmin = 0.0;
     double bc_val_xmax = 0.0;
-    double bc_val_ymin = 50.0;
-    double bc_val_ymax = 30.0;
+    double bc_val_ymin = 10.0;
+    double bc_val_ymax = 10.0;
 
-    int num_steps = 100;
-    double T = 1.5;
+    int num_steps = 1;
+    double T = 0.01;
 
     double dx = (x_max-x_min)/(xN-1);
     double dy = (y_max-y_min)/(yN-1);
@@ -83,8 +83,8 @@ int main( int argc, char** argv )
 
     int max_iters = 1000;
     double tolerance = 1.0e-8;
-    int num_histories = 100;
-    double weight_cutoff = 1.0e-8;
+    int num_histories = 10;
+    double weight_cutoff = 1.0e-3;
 
     // Setup up a VTK mesh for output.
     HMCSA::VtkWriter vtk_writer( x_min, x_max, y_min, y_max,
