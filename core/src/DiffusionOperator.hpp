@@ -75,21 +75,21 @@ class DiffusionOperator
 
   private:
 
-    // Build the second order diffusion operator.
-    void build_second_order( const int num_x, 
-			     const int num_y,
-			     const double dx,
-			     const double dy,
-			     const double dt,
-			     const double alpha );
+    // Build the five point stencil diffusion operator.
+    void build_five_point_stencil( const int num_x, 
+				   const int num_y,
+				   const double dx,
+				   const double dy,
+				   const double dt,
+				   const double alpha );
 
-    // Build the fourth order diffusion operator.
-    void build_fourth_order( const int num_x, 
-			     const int num_y,
-			     const double dx,
-			     const double dy,
-			     const double dt,
-			     const double alpha );
+    // Build the nine point stencil diffusion operator.
+    void build_nine_point_stencil( const int num_x, 
+				   const int num_y,
+				   const double dx,
+				   const double dy,
+				   const double dt,
+				   const double alpha );
 };
 
 } // end namespace HMCSA

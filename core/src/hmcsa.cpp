@@ -72,14 +72,14 @@ int main( int argc, char** argv )
     double bc_val_ymin = 10.0;
     double bc_val_ymax = 10.0;
 
-    int num_steps = 1;
+    int num_steps = 40;
     double T = 0.01;
 
     double dx = (x_max-x_min)/(xN-1);
     double dy = (y_max-y_min)/(yN-1);
     double dt = T / num_steps;
 
-    double alpha = 0.01;
+    double alpha = 1.0;
 
     int max_iters = 10000;
     double tolerance = 1.0e-8;
@@ -92,7 +92,7 @@ int main( int argc, char** argv )
 
     // Build the Diffusion operator.
     HMCSA::DiffusionOperator diffusion_operator(
-	2,
+	4,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
