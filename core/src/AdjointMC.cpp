@@ -243,6 +243,7 @@ Epetra_CrsMatrix AdjointMC::buildQ()
 	    Q.InsertGlobalValues( i, 1, &local_Q, &H_indices[j] );
 	}
     }
+
     Q.FillComplete();
     Q.OptimizeStorage();
     return Q;
@@ -275,6 +276,7 @@ Epetra_CrsMatrix AdjointMC::buildC()
 	    C.InsertGlobalValues( i, 1, &local_C, &Q_indices[j] );
 	}
     }
+
     C.FillComplete();
     C.OptimizeStorage();
     return C;

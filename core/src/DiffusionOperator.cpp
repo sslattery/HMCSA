@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
 // \file DiffusionOperator.cpp
 // \author Stuart R. Slattery
-// \brief Diffusion operator definition.
+// \brief Second order diffusion operator definition.
 //---------------------------------------------------------------------------//
 
 #include <vector>

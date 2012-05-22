@@ -19,7 +19,7 @@ namespace HMCSA
 /*!
  * \brief Constructor.
  */
-DirectMC::DirectMC( Epetra_LinearProblem *linear_problem )
+DirectMC::DirectMC( Teuchos::RCP<Epetra_LinearProblem> &linear_problem )
     : d_linear_problem( linear_problem )
     , d_H( buildH() )
     , d_P( buildP() )
@@ -37,75 +37,87 @@ DirectMC::~DirectMC()
  */
 void DirectMC::walk( const int num_histories, const double weight_cutoff )
 {
-    // Setup.
+    // Get the LHS and source.
     Epetra_Vector *x = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetLHS() );
     const Epetra_Vector *b = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
     int N = x->GlobalLength();
+    int n_H = d_H.GlobalMaxNumEntries();
+    int n_P = d_P.GlobalMaxNumEntries();
+    int n_C = d_C.GlobalMaxNumEntries();
 
-    // Random walk.
+    // Setup.
     int state;
     int new_state;
     int new_index;
     double weight;
     double zeta;
     bool walk;
-    std::vector<double> H_values( N );
-    std::vector<int> H_indices( N );
+    std::vector<double> H_values( n_H );
+    std::vector<int> H_indices( n_H );
     int H_size;
-    std::vector<double> P_values( N );
-    std::vector<int> P_indices( N );
-    int size_P;
-    std::vector<double> C_values( N );
-    std::vector<int> C_indices( N );
-    int size_C;
+    std::vector<double> P_values( n_P );
+    std::vector<int> P_indices( n_P );
+    int P_size;
+    std::vector<double> C_values( n_C );
+    std::vector<int> C_indices( n_C );
+    int C_size;
     std::vector<int>::iterator P_it;
     std::vector<int>::iterator H_it;
+
+    // Do random walks for specified number of histories.
     for ( int i = 0; i < N; ++i )
     {
 	for ( int n = 0; n < num_histories; ++n )
 	{
+	    // Random walk.
 	    state = i;
 	    weight = 1.0;
 	    walk = true;
 	    while ( walk )
 	    {
+		// Update LHS.
 		(*x)[i] += weight * (*b)[state];
 
+		// Sample the CDF to get the next state.
 		d_C.ExtractGlobalRowCopy( state, 
-					  N, 
-					  size_C, 
+					  n_C, 
+					  C_size, 
 					  &C_values[0], 
 					  &C_indices[0] );
+
 		zeta = (double) rand() / RAND_MAX;
+
 		new_index = std::distance( 
 		    C_values.begin(),
 		    std::lower_bound( C_values.begin(), 
-				      C_values.begin()+size_C,
+				      C_values.begin()+C_size,
 				      zeta ) );
 		new_state = C_indices[ new_index ];
 
+		// Get the state components of P and H.
 		d_P.ExtractGlobalRowCopy( state, 
-					  N, 
-					  size_P, 
+					  n_P, 
+					  P_size, 
 					  &P_values[0], 
 					  &P_indices[0] );
 
 		d_H.ExtractGlobalRowCopy( state, 
-					  N, 
+					  n_H, 
 					  H_size, 
 					  &H_values[0], 
 					  &H_indices[0] );
 
 		P_it = std::find( P_indices.begin(),
-				  P_indices.begin()+size_P,
+				  P_indices.begin()+P_size,
 				  new_state );
 		
 		H_it = std::find( H_indices.begin(),
 				  H_indices.begin()+H_size,
 				  new_state );
 
+		// Compute the new weight.
 		if ( P_values[std::distance(P_indices.begin(),P_it)] == 0 ||
 		     P_it == P_indices.end() )
 		{
@@ -122,11 +134,13 @@ void DirectMC::walk( const int num_histories, const double weight_cutoff )
 		    walk = false;
 		}
 
+		// Update the state.
 		state = new_state;
 	    }
 	}
 
-	(*x)[i] /= num_histories;
+	// Normalize.
+	x->Scale( 1.0 / num_histories );
     }
 }
 
@@ -172,7 +186,9 @@ Epetra_CrsMatrix DirectMC::buildH()
 	    H.InsertGlobalValues( i, 1, &local_H, &i );
 	}
     }
+
     H.FillComplete();
+    H.OptimizeStorage();
     return H;
 }
 
@@ -184,14 +200,15 @@ Epetra_CrsMatrix DirectMC::buildP()
     Epetra_CrsMatrix P( Copy, d_H.RowMap(), d_H.GlobalMaxNumEntries() );
     double row_sum = 0.0;
     int N = d_H.NumGlobalRows();
-    std::vector<double> H_values( N );
-    std::vector<int> H_indices( N );
+    int n_H = d_H.GlobalMaxNumEntries();
+    std::vector<double> H_values( n_H );
+    std::vector<int> H_indices( n_H );
     int H_size = 0;
     double local_P = 0.0;
     for ( int i = 0; i < N; ++i )
     {
 	d_H.ExtractGlobalRowCopy( i,
-				 N, 
+				 n_H, 
 				 H_size, 
 				 &H_values[0], 
 				 &H_indices[0] );
@@ -203,11 +220,20 @@ Epetra_CrsMatrix DirectMC::buildP()
 	}
 	for ( int j = 0; j < H_size; ++j )
 	{
-	    local_P = abs(H_values[j]) / row_sum;
+	    if ( row_sum == 0.0 )
+	    {
+		local_P = row_sum;
+	    }
+	    else
+	    {
+		local_P = abs(H_values[j]) / row_sum;
+	    }
 	    P.InsertGlobalValues( i, 1, &local_P, &H_indices[j] );
 	}
     }
+
     P.FillComplete();
+    P.OptimizeStorage();
     return P;
 }
 
@@ -217,26 +243,29 @@ Epetra_CrsMatrix DirectMC::buildP()
 Epetra_CrsMatrix DirectMC::buildC()
 {
     int N = d_P.NumGlobalRows();
+    int n_P = d_P.GlobalMaxNumEntries();
     Epetra_CrsMatrix C( Copy, d_P.RowMap(), d_P.GlobalMaxNumEntries() );
     double local_C = 0.0;
-    std::vector<double> P_values( N );
-    std::vector<int> P_indices( N );
-    int size_P = 0;
+    std::vector<double> P_values( n_P );
+    std::vector<int> P_indices( n_P );
+    int P_size = 0;
     for ( int i = 0; i < N; ++i )
     {
 	d_P.ExtractGlobalRowCopy( i, 
-				  N, 
-				  size_P, 
+				  n_P, 
+				  P_size, 
 				  &P_values[0], 
 				  &P_indices[0] );
 	local_C = 0.0;
-	for ( int j = 0; j < size_P; ++j )
+	for ( int j = 0; j < P_size; ++j )
 	{
 	    local_C += P_values[j];
 	    C.InsertGlobalValues( i, 1, &local_C, &P_indices[j] );
 	}
     }
+
     C.FillComplete();
+    C.OptimizeStorage();
     return C;
 }
 

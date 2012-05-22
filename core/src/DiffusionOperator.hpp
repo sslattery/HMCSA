@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
 // \file DiffusionOperator.hpp
 // \author Stuart R. Slattery
-// \brief Diffusion operator declaration.
+// \brief Second order diffusion operator declaration.
 //---------------------------------------------------------------------------//
 
 #ifndef HMCSA_DIFFUSIONOPERATOR_HPP

@@ -7,6 +7,8 @@
 #ifndef HMCSA_DIRECTMC_HPP
 #define HMCSA_DIRECTMC_HPP
 
+#include <Teuchos_RCP.hpp>
+
 #include <Epetra_CrsMatrix.h>
 #include <Epetra_LinearProblem.h>
 
@@ -18,7 +20,7 @@ class DirectMC
   private:
 
     // Linear problem.
-    Epetra_LinearProblem *d_linear_problem;
+    Teuchos::RCP<Epetra_LinearProblem> d_linear_problem;
 
     // Iteration matrix.
     Epetra_CrsMatrix d_H;
@@ -32,13 +34,17 @@ class DirectMC
   public:
 
     // Constructor.
-    DirectMC( Epetra_LinearProblem *linear_problem );
+    DirectMC( Teuchos::RCP<Epetra_LinearProblem> &linear_problem );
 
     // Destructor.
     ~DirectMC();
 
     // Solve.
     void walk( const int num_histories, const double weight_cutoff );
+
+    // Return the iteration matrix.
+    const Epetra_CrsMatrix& getH() const
+    { return d_H; }
 
   private:
 
