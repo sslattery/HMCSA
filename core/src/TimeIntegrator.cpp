@@ -39,7 +39,8 @@ TimeIntegrator::~TimeIntegrator()
 /*!
  * \brief Time step.
  */
-void TimeIntegrator::integrate( const int num_steps,
+void TimeIntegrator::integrate( bool use_adjoint,
+				const int num_steps,
 				const int max_iters,
 				const double tolerance,
 				const int num_histories,
@@ -60,7 +61,8 @@ void TimeIntegrator::integrate( const int num_steps,
 
 	// Solve A u^(n+1) = u^n
 	start = clock();
-	d_solver.iterate( max_iters, tolerance, num_histories, weight_cutoff );
+	d_solver.iterate( true, max_iters, tolerance, 
+			  num_histories, weight_cutoff );
 	timer = (double)(clock() - start) / CLOCKS_PER_SEC;
 
 	// Write this time step to file.

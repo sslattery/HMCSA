@@ -174,15 +174,16 @@ Epetra_CrsMatrix AdjointMC::buildH()
 	dynamic_cast<Epetra_CrsMatrix*>( d_linear_problem->GetMatrix() );
     Epetra_CrsMatrix H( Copy, A->RowMap(), A->GlobalMaxNumEntries() );
     int N = A->NumGlobalRows();
-    std::vector<double> A_values( N );
-    std::vector<int> A_indices( N );
+    int n_A = A->GlobalMaxNumEntries();
+    std::vector<double> A_values( n_A );
+    std::vector<int> A_indices( n_A );
     int A_size = 0;
     double local_H;
     bool found_diag = false;
     for ( int i = 0; i < N; ++i )
     {
 	A->ExtractGlobalRowCopy( i,
-				 N, 
+				 n_A, 
 				 A_size, 
 				 &A_values[0], 
 				 &A_indices[0] );

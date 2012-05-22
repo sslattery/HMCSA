@@ -57,8 +57,8 @@ void buildIC( std::vector<double> &source,
 int main( int argc, char** argv )
 {
     // Problem parameters.
-    int xN = 101;
-    int yN = 101;
+    int xN = 21;
+    int yN = 21;
     int problem_size = xN*yN;
 
     double x_min = 0.0;
@@ -92,6 +92,7 @@ int main( int argc, char** argv )
 
     // Build the Diffusion operator.
     HMCSA::DiffusionOperator diffusion_operator(
+	2,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
@@ -119,7 +120,7 @@ int main( int argc, char** argv )
 
     // Time step.
     HMCSA::TimeIntegrator time_integrator( linear_problem, vtk_writer );
-    time_integrator.integrate( num_steps, max_iters, 
+    time_integrator.integrate( true, num_steps, max_iters, 
 			       tolerance, num_histories,
 			       weight_cutoff );    
 

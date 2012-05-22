@@ -50,7 +50,8 @@ class DiffusionOperator
   public:
 
     // Constructor.
-    DiffusionOperator( const int x_min_type,
+    DiffusionOperator( const int order,
+		       const int x_min_type,
 		       const int x_max_type,
 		       const int y_min_type,
 		       const int y_max_type,
@@ -74,13 +75,21 @@ class DiffusionOperator
 
   private:
 
-    // Build the diffusion operator.
-    void build_diffusion_operator( const int num_x, 
-				   const int num_y,
-				   const double dx,
-				   const double dy,
-				   const double dt,
-				   const double alpha );
+    // Build the second order diffusion operator.
+    void build_second_order( const int num_x, 
+			     const int num_y,
+			     const double dx,
+			     const double dy,
+			     const double dt,
+			     const double alpha );
+
+    // Build the fourth order diffusion operator.
+    void build_fourth_order( const int num_x, 
+			     const int num_y,
+			     const double dx,
+			     const double dy,
+			     const double dt,
+			     const double alpha );
 };
 
 } // end namespace HMCSA

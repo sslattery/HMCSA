@@ -34,7 +34,8 @@ class MCSA
     ~MCSA();
 
     // Solve.
-    void iterate( const int max_iters,
+    void iterate( bool use_adoint, 
+		  const int max_iters,
 		  const double tolerance,
 		  const int num_histories,
 		  const double weight_cutoff );

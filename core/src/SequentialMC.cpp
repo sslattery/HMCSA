@@ -50,7 +50,6 @@ void SequentialMC::iterate( const int max_iters,
     AdjointMC mc_solver( residual_problem );
 
     Epetra_Vector temp_vec( row_map );
-    int N = A->NumGlobalRows();
 
     d_num_iters = 0;
     double residual_norm = 1.0;

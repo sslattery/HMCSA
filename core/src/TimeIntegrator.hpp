@@ -44,7 +44,8 @@ class TimeIntegrator
     ~TimeIntegrator();
 
     // Time step.
-    void integrate( const int num_steps,
+    void integrate( bool use_adjoint,
+		    const int num_steps,
 		    const int max_iters,
 		    const double tolerance,
 		    const int num_histories,

@@ -64,15 +64,16 @@ void JacobiPreconditioner::preconditionOperator()
     const Epetra_CrsMatrix *A = 
 	dynamic_cast<Epetra_CrsMatrix*>( d_linear_problem->GetMatrix() );
     int N = A->NumGlobalRows();
+    int n_A = A->GlobalMaxNumEntries();
 
     // Compute (M^-1 A) and (M^-1 b).
     double ma_val;
     int A_size;
-    std::vector<double> A_values(N);
-    std::vector<int> A_indices(N);
+    std::vector<double> A_values(n_A);
+    std::vector<int> A_indices(n_A);
     for ( int i = 0; i < N; ++i )
     {
-	A->ExtractGlobalRowCopy( i, N, A_size, &A_values[0], &A_indices[0] );
+	A->ExtractGlobalRowCopy( i, n_A, A_size, &A_values[0], &A_indices[0] );
 	for ( int j = 0; j < A_size; ++j )
 	{
 	    ma_val = A_values[j] / (*d_diagonal)[i];
