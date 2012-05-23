@@ -186,6 +186,8 @@ void DiffusionOperator::build_nine_point_stencil( const int num_x,
 
     double one = 1.0;
 
+    // Fill in with a 5 point stencil to hit the near boundary points that
+    // can't be used with the 9 point. Just being lazy here.
     double diag_2 = 1.0 + 2*dt*alpha*( 1/(dx*dx) + 1/(dy*dy) );
     double i_minus = -dt*alpha/(dx*dx);
     double i_plus = -dt*alpha/(dx*dx);
@@ -197,8 +199,6 @@ void DiffusionOperator::build_nine_point_stencil( const int num_x,
     int idx_jminus;
     int idx_jplus;
 
-    // Fill in with a 5 point stencil to hit the near boundary points that
-    // can't be used with the 9 point. Just being lazy here.
     for ( int i = 1; i < num_x-1; ++i )
     {
 	for ( int j = 1; j < num_y-1; ++j )
