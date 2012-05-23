@@ -16,7 +16,7 @@ namespace HMCSA
 /*! 
  * \brief Constructor.
  */
-DiffusionOperator::DiffusionOperator( const int order,
+DiffusionOperator::DiffusionOperator( const int stencil,
 				      const int x_min_type,
 				      const int x_max_type,
 				      const int y_min_type,
@@ -40,11 +40,11 @@ DiffusionOperator::DiffusionOperator( const int order,
     , d_y_min_value( y_min_value )
     , d_y_max_value( y_max_value )
 {
-    if ( order == 2 )
+    if ( stencil == 5 )
     {
 	build_five_point_stencil( num_x, num_y, dx, dy, dt, alpha );
     }
-    else if ( order == 4 )
+    else if ( stencil == 9 )
     {
 	build_nine_point_stencil( num_x, num_y, dx, dy, dt, alpha );
     }

@@ -92,7 +92,7 @@ int main( int argc, char** argv )
 
     // Build the Diffusion operator.
     HMCSA::DiffusionOperator diffusion_operator(
-	4,
+	9,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,

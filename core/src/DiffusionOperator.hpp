@@ -50,7 +50,7 @@ class DiffusionOperator
   public:
 
     // Constructor.
-    DiffusionOperator( const int order,
+    DiffusionOperator( const int stencil,
 		       const int x_min_type,
 		       const int x_max_type,
 		       const int y_min_type,
