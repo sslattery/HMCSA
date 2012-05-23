@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 
 #include "MCSA.hpp"
-#include "DirectMC.hpp"
+#include "AdjointMC.hpp"
 
 #include <Epetra_Map.h>
 #include <Epetra_Vector.h>
@@ -29,7 +29,7 @@ MCSA::~MCSA()
 /*!
  * \brief Solve.
  */
-void MCSA::iterate( bool use_direct,
+void MCSA::iterate( bool use_adjoint,
 		    const int max_iters,
 		    const double tolerance,
 		    const int num_histories,
@@ -43,13 +43,13 @@ void MCSA::iterate( bool use_direct,
     const Epetra_Vector *b = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
 
-    // Setup the residual Direct MC solver.
+    // Setup the residual Adjoint MC solver.
     Epetra_Map row_map = A->RowMap();
     Epetra_Vector delta_x( row_map );
     Epetra_Vector residual( row_map );
     Teuchos::RCP<Epetra_LinearProblem> residual_problem = Teuchos::rcp(
 	new Epetra_LinearProblem( A, &delta_x, &residual ) );
-    DirectMC mc_solver = DirectMC( residual_problem );
+    AdjointMC mc_solver = AdjointMC( residual_problem );
 
     // Iterate.
     Epetra_CrsMatrix H = mc_solver.getH();
