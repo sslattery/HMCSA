@@ -32,7 +32,7 @@
 
 TEUCHOS_UNIT_TEST( DiffusionOperator, diffusion_operator_radius_test )
 {
-    HMCSA::DiffusionOperator diffusion_operator( HMCSA::HMCSA_DIRICHLET,
+    HMCSA::DiffusionOperator diffusion_operator( 5, HMCSA::HMCSA_DIRICHLET,
 						 HMCSA::HMCSA_DIRICHLET,
 						 HMCSA::HMCSA_DIRICHLET,
 						 HMCSA::HMCSA_DIRICHLET,

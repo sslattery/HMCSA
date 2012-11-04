@@ -12,8 +12,10 @@
 #include <sstream>
 #include <ostream>
 
+#include "DirectMC.hpp"
 #include "AdjointMC.hpp"
 #include "MCSA.hpp"
+#include "SequentialMC.hpp"
 #include "OperatorTools.hpp"
 #include "JacobiPreconditioner.hpp"
 #include "DiffusionOperator.hpp"
@@ -84,21 +86,22 @@ buildH( const Teuchos::RCP<Epetra_CrsMatrix> &A)
 
 TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 {
-    int N = 100;
+    int N = 50;
     int problem_size = N*N;
 
     // Build the diffusion operator.
-    double bc_val = 10.0;
+    double bc_val_1 = 5.0;
+    double bc_val_2 = 0.0;
     double dx = 0.01;
     double dy = 0.01;
-    double dt = 0.005;
+    double dt = 0.5;
     double alpha = 0.01;
-    HMCSA::DiffusionOperator diffusion_operator(
+    HMCSA::DiffusionOperator diffusion_operator( 5,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
-	bc_val, bc_val, bc_val, bc_val,
+	bc_val_1, bc_val_1, bc_val_2, bc_val_2,
 	N, N,
 	dx, dy, dt, alpha );
 
@@ -115,29 +118,33 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     // Build source - set intial and Dirichlet boundary conditions.
     std::vector<double> b_vector( problem_size, 1.0 );
     int idx;
+    // left
     for ( int j = 1; j < N-1; ++j )
     {
 	int i = 0;
 	idx = i + j*N;
-	b_vector[idx] = bc_val;
+	b_vector[idx] = bc_val_1;
     }
+    // right
     for ( int j = 1; j < N-1; ++j )
     {
 	int i = N-1;
 	idx = i + j*N;
-	b_vector[idx] = bc_val;
+	b_vector[idx] = bc_val_1;
     }
+    // bottom
     for ( int i = 0; i < N; ++i )
     {
 	int j = 0;
 	idx = i + j*N;
-	b_vector[idx] = bc_val;
+	b_vector[idx] = bc_val_2;
     }
+    // top
     for ( int i = 0; i < N; ++i )
     {
 	int j = N-1;
 	idx = i + j*N;
-	b_vector[idx] = bc_val;
+	b_vector[idx] = bc_val_2;
     }
     Epetra_Vector b( View, map, &b_vector[0] );
 
@@ -164,29 +171,28 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     	      << "---------------------" << std::endl;
 
     // MCSA Solve.
-    HMCSA::MCSA mcsa_solver( linear_problem );
-    mcsa_solver.iterate( 10000, 1.0e-8, 50, 1.0e-4 );
-    std::cout << "MCSA ITERS: " << mcsa_solver.getNumIters() << std::endl;
+    HMCSA::AdjointMC mcsa_solver( linear_problem );
+    mcsa_solver.walk( 100, 1.0e-4 );
 
-    // Aztec GMRES Solve.
-    Teuchos::RCP<Epetra_LinearProblem> aztec_linear_problem = Teuchos::rcp(
-    	new Epetra_LinearProblem( A.getRawPtr(), &x_aztec, &b ) );
-    AztecOO aztec_solver( *aztec_linear_problem );
-    aztec_solver.SetAztecOption( AZ_solver, AZ_gmres );
-    aztec_solver.Iterate( 100, 1.0e-8 );
+    // // Aztec GMRES Solve.
+    // Teuchos::RCP<Epetra_LinearProblem> aztec_linear_problem = Teuchos::rcp(
+    // 	new Epetra_LinearProblem( A.getRawPtr(), &x_aztec, &b ) );
+    // AztecOO aztec_solver( *aztec_linear_problem );
+    // aztec_solver.SetAztecOption( AZ_solver, AZ_gmres );
+    // aztec_solver.Iterate( 100, 1.0e-8 );
 
-    // Error comparison.
-    std::vector<double> error_vector( problem_size );
-    Epetra_Vector error( View, map, &error_vector[0] );
-    for (int i = 0; i < problem_size; ++i)
-    {
-    	error[i] = x[i] - x_aztec[i];
-    }
-    double error_norm;
-    error.Norm2( &error_norm );
-    std::cout << std::endl << 
-    	"Aztec GMRES vs. MCSA absolute error L2 norm: " << 
-    	error_norm << std::endl;    
+    // // Error comparison.
+    // std::vector<double> error_vector( problem_size );
+    // Epetra_Vector error( View, map, &error_vector[0] );
+    // for (int i = 0; i < problem_size; ++i)
+    // {
+    // 	error[i] = x[i] - x_aztec[i];
+    // }
+    // double error_norm;
+    // error.Norm2( &error_norm );
+    // std::cout << std::endl << 
+    // 	"Aztec GMRES vs. MCSA absolute error L2 norm: " << 
+    // 	error_norm << std::endl;    
 
     // Write the results to file.
     HMCSA::VtkWriter vtk_writer( 0.0, 1.0, 0.0, 1.0,

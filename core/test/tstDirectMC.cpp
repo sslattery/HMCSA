@@ -76,8 +76,8 @@ TEUCHOS_UNIT_TEST( DirectMC, DirectMC_test)
     }
     A.FillComplete();
 
-    Epetra_LinearProblem *linear_problem = 
-	new Epetra_LinearProblem( &A, &x, &b );
+    Teuchos::RCP<Epetra_LinearProblem> linear_problem = Teuchos::rcp(
+	new Epetra_LinearProblem( &A, &x, &b ) );
 
     HMCSA::DirectMC direct_mc_solver( linear_problem );
     direct_mc_solver.walk( 1000, 1.0e-8 );

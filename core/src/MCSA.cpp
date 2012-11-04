@@ -29,8 +29,7 @@ MCSA::~MCSA()
 /*!
  * \brief Solve.
  */
-void MCSA::iterate( bool use_adjoint,
-		    const int max_iters,
+void MCSA::iterate( const int max_iters,
 		    const double tolerance,
 		    const int num_histories,
 		    const double weight_cutoff )
@@ -70,6 +69,7 @@ void MCSA::iterate( bool use_adjoint,
 	residual.Update( 1.0, *b, -1.0, temp_vec, 0.0 );
 
 	// Solve for delta_x.
+	delta_x.PutScalar( 0.0 );
 	mc_solver.walk( num_histories, weight_cutoff );
 
 	// Apply delta_x.
@@ -78,6 +78,8 @@ void MCSA::iterate( bool use_adjoint,
 	// Update convergence check.
 	residual.NormInf( &residual_norm );
 	++d_num_iters;
+
+	std::cout << residual_norm << " " << d_num_iters << std::endl;
     }
 }
 

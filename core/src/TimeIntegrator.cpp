@@ -61,7 +61,7 @@ void TimeIntegrator::integrate( bool use_adjoint,
 
 	// Solve A u^(n+1) = u^n
 	start = clock();
-	d_solver.iterate( true, max_iters, tolerance, 
+	d_solver.iterate( max_iters, tolerance, 
 			  num_histories, weight_cutoff );
 	timer = (double)(clock() - start) / CLOCKS_PER_SEC;
 

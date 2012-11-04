@@ -61,12 +61,15 @@ void SequentialMC::iterate( const int max_iters,
 	A->Apply( *x, temp_vec );
 	residual.Update( 1.0, *b, -1.0, temp_vec, 0.0 );
 
+	delta_x.PutScalar( 0.0 );
 	mc_solver.walk( num_histories, weight_cutoff );
 
 	x->Update( 1.0, delta_x, 1.0 );
 
 	residual.NormInf( &residual_norm );
 	++d_num_iters;
+
+	std::cout << residual_norm << " " << d_num_iters << std::endl;
     }
 }
 

@@ -78,7 +78,7 @@ void DirectMC::walk( const int num_histories, const double weight_cutoff )
 	    while ( walk )
 	    {
 		// Update LHS.
-		(*x)[i] += weight * (*b)[state];
+		(*x)[i] += weight * (*b)[state] / num_histories;
 
 		// Sample the CDF to get the next state.
 		d_C.ExtractGlobalRowCopy( state, 
@@ -119,9 +119,10 @@ void DirectMC::walk( const int num_histories, const double weight_cutoff )
 
 		// Compute the new weight.
 		if ( P_values[std::distance(P_indices.begin(),P_it)] == 0 ||
-		     P_it == P_indices.end() )
+		     P_it == P_indices.end() ||
+		     H_it == H_indices.begin()+H_size )
 		{
-		    weight = 0;
+		    weight = 0.0;
 		}
 		else
 		{
@@ -138,9 +139,6 @@ void DirectMC::walk( const int num_histories, const double weight_cutoff )
 		state = new_state;
 	    }
 	}
-
-	// Normalize.
-	x->Scale( 1.0 / num_histories );
     }
 }
 
