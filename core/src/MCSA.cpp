@@ -67,7 +67,7 @@ void MCSA::iterate( const int max_iters,
 	// Compute the residual.
 	A->Apply( *x, temp_vec );
 	residual.Update( 1.0, *b, -1.0, temp_vec, 0.0 );
-
+ 
 	// Solve for delta_x.
 	delta_x.PutScalar( 0.0 );
 	mc_solver.walk( num_histories, weight_cutoff );
@@ -76,6 +76,8 @@ void MCSA::iterate( const int max_iters,
 	x->Update( 1.0, delta_x, 1.0 );
 
 	// Update convergence check.
+	A->Apply( *x, temp_vec );
+	residual.Update( 1.0, *b, -1.0, temp_vec, 0.0 );
 	residual.NormInf( &residual_norm );
 	++d_num_iters;
 

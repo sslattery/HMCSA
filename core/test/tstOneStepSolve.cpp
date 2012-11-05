@@ -86,7 +86,7 @@ buildH( const Teuchos::RCP<Epetra_CrsMatrix> &A)
 
 TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
 {
-    int N = 50;
+    int N = 10;
     int problem_size = N*N;
 
     // Build the diffusion operator.
@@ -94,8 +94,8 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     double bc_val_2 = 0.0;
     double dx = 0.01;
     double dy = 0.01;
-    double dt = 0.5;
-    double alpha = 0.01;
+    double dt = 0.05;
+    double alpha = 0.001;
     HMCSA::DiffusionOperator diffusion_operator( 5,
 	HMCSA::HMCSA_DIRICHLET,
 	HMCSA::HMCSA_DIRICHLET,
@@ -109,14 +109,14 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     Epetra_Map map = A->RowMap();
 
     // Solution Vectors.
-    std::vector<double> x_vector( problem_size );
+    std::vector<double> x_vector( problem_size, 0.0 );
     Epetra_Vector x( View, map, &x_vector[0] );
 
     std::vector<double> x_aztec_vector( problem_size );
     Epetra_Vector x_aztec( View, map, &x_aztec_vector[0] );
     
     // Build source - set intial and Dirichlet boundary conditions.
-    std::vector<double> b_vector( problem_size, 1.0 );
+    std::vector<double> b_vector( problem_size, 0.0 );
     int idx;
     // left
     for ( int j = 1; j < N-1; ++j )
@@ -171,8 +171,8 @@ TEUCHOS_UNIT_TEST( MCSA, one_step_solve_test)
     	      << "---------------------" << std::endl;
 
     // MCSA Solve.
-    HMCSA::AdjointMC mcsa_solver( linear_problem );
-    mcsa_solver.walk( 100, 1.0e-4 );
+    HMCSA::MCSA mcsa_solver( linear_problem );
+    mcsa_solver.iterate( 100, 1.0e-8, 1000, 1.0e-4 );
 
     // // Aztec GMRES Solve.
     // Teuchos::RCP<Epetra_LinearProblem> aztec_linear_problem = Teuchos::rcp(
