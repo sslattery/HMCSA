@@ -50,7 +50,7 @@ void MCSA::iterate( const int max_iters,
 	new Epetra_LinearProblem( A, &delta_x, &residual ) );
     AdjointMC mc_solver = AdjointMC( residual_problem );
 
-    // Iterate.
+    // Setup for iteration.
     Epetra_CrsMatrix H = mc_solver.getH();
     Epetra_Vector temp_vec( row_map );
     d_num_iters = 0;
@@ -58,6 +58,8 @@ void MCSA::iterate( const int max_iters,
     double b_norm;
     b->NormInf( &b_norm );
     double conv_crit = b_norm*tolerance;
+
+    // Iterate.
     while ( residual_norm > conv_crit && d_num_iters < max_iters )
     {
 	// Richardson iteration.
@@ -81,6 +83,7 @@ void MCSA::iterate( const int max_iters,
 	residual.NormInf( &residual_norm );
 	++d_num_iters;
 
+	// Output iteration data.
 	std::cout << residual_norm << " " << d_num_iters << std::endl;
     }
 }

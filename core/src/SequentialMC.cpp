@@ -35,6 +35,7 @@ void SequentialMC::iterate( const int max_iters,
 			    const int num_histories,
 			    const double weight_cutoff )
 {
+    // Extract the linear problem.
     Epetra_CrsMatrix *A = 
 	dynamic_cast<Epetra_CrsMatrix*>( d_linear_problem->GetMatrix() );
     Epetra_Vector *x = 
@@ -42,6 +43,7 @@ void SequentialMC::iterate( const int max_iters,
     const Epetra_Vector *b = 
 	dynamic_cast<Epetra_Vector*>( d_linear_problem->GetRHS() );
 
+    // Setup the residual Adjoint MC solver.
     Epetra_Map row_map = A->RowMap();
     Epetra_Vector delta_x( row_map );
     Epetra_Vector residual( row_map );
@@ -49,26 +51,35 @@ void SequentialMC::iterate( const int max_iters,
 	new Epetra_LinearProblem( A, &delta_x, &residual ) );
     AdjointMC mc_solver( residual_problem );
 
+    // Setup for iteration.
     Epetra_Vector temp_vec( row_map );
-
     d_num_iters = 0;
     double residual_norm = 1.0;
     double b_norm;
     b->NormInf( &b_norm );
     double conv_crit = b_norm*tolerance;
+
+    // Iterate.
     while ( residual_norm > conv_crit && d_num_iters < max_iters )
     {
+	// Compute the residual.
 	A->Apply( *x, temp_vec );
 	residual.Update( 1.0, *b, -1.0, temp_vec, 0.0 );
 
+	// Solve for delta_x.
 	delta_x.PutScalar( 0.0 );
 	mc_solver.walk( num_histories, weight_cutoff );
 
+	// Apply delta_x.
 	x->Update( 1.0, delta_x, 1.0 );
 
+	// Update convergence check.
+	A->Apply( *x, temp_vec );
+	residual.Update( 1.0, *b, -1.0, temp_vec, 0.0 );
 	residual.NormInf( &residual_norm );
 	++d_num_iters;
 
+	// Output iteration data.
 	std::cout << residual_norm << " " << d_num_iters << std::endl;
     }
 }
