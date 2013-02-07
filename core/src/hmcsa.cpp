@@ -72,7 +72,7 @@ int main( int argc, char** argv )
     double bc_val_ymin = 10.0;
     double bc_val_ymax = 10.0;
 
-    int num_steps = 100;
+    int num_steps = 1;
     double T = 0.02;
 
     double dx = (x_max-x_min)/(xN-1);
@@ -83,7 +83,7 @@ int main( int argc, char** argv )
 
     int max_iters = 1000;
     double tolerance = 1.0e-8;
-    int num_histories = 50;
+    int num_histories = 500;
     double weight_cutoff = 1.0e-4;
 
     // Setup up a VTK mesh for output.

@@ -50,7 +50,7 @@ void TimeIntegrator::integrate( bool use_adjoint,
     d_preconditioner.preconditionOperator();
 
     // Setup a time value for timing.
-    std::clock_t start;
+    std::clock_t start, end;
     double timer;
     
     // Do time steps.
@@ -63,7 +63,8 @@ void TimeIntegrator::integrate( bool use_adjoint,
 	start = clock();
 	d_solver.iterate( max_iters, tolerance, 
 			  num_histories, weight_cutoff );
-	timer = (double)(clock() - start) / CLOCKS_PER_SEC;
+	end = clock();
+	timer = (double)(end - start) / CLOCKS_PER_SEC;
 
 	// Write this time step to file.
 	writeStep( n );
