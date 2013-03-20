@@ -31,7 +31,7 @@ OperatorTools::spectralRadius( const Teuchos::RCP<Epetra_Operator>& matrix )
 
     const int nev = 1;
     const int block_size = 1;
-    const int num_blocks = 10;
+    const int num_blocks = 20;
     const int max_restarts = 100;
     const double tol = 1.0e-4;
 
@@ -62,16 +62,12 @@ OperatorTools::spectralRadius( const Teuchos::RCP<Epetra_Operator>& matrix )
 	solver_manager(eigen_problem, krylovschur_params);
     solver_manager.solve();
 
-    Anasazi::Eigensolution<double,Epetra_MultiVector> sol = 
-	eigen_problem->getSolution();
+    Anasazi::Eigensolution<double,Epetra_MultiVector> sol = eigen_problem->getSolution();
     std::vector<Anasazi::Value<double> > evals = sol.Evals;
     Teuchos::RCP<Epetra_MultiVector> evecs = sol.Evecs;
 
-    double spectral_radius = pow( evals[0].realpart*evals[0].realpart +
-				  evals[0].imagpart*evals[0].imagpart,
-				  0.5 );
-
-    return spectral_radius;
+    return std::pow( evals[0].realpart*evals[0].realpart +
+		     evals[0].imagpart*evals[0].imagpart, 0.5 );
 }
 
 /*!

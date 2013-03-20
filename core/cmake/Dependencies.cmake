@@ -1,6 +1,7 @@
 SET(LIB_REQUIRED_DEP_PACKAGES 
   Teuchos
   Epetra
+  EpetraExt
   AztecOO
   Anasazi 
   )
