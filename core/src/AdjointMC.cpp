@@ -71,6 +71,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     int C_size;
     std::vector<int>::iterator Q_it;
     std::vector<int>::iterator H_it;
+    std::vector<double>::iterator new_it;
 
     // Build source cdf.
     b_cdf[0] = std::abs((*b)[0]);
@@ -86,7 +87,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     }
 
     // Do random walks for specified number of histories.
-    bool use_collision_estimator = true;
+    bool use_collision_estimator = false;
     for ( int n = 0; n < num_histories; ++n )
     {
 	// Sample the source to get the initial state.
@@ -133,55 +134,65 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 	    			      &C_indices[0] );
 
 	    zeta = (double) rand() / RAND_MAX;
-	    new_index = std::distance( 
-	    	C_values.begin(),
-	    	std::lower_bound( C_values.begin(), 
-	    			  C_values.begin()+C_size,
-	    			  zeta ) );
-	    new_state = C_indices[ new_index ];
+            new_it = std::lower_bound( C_values.begin(), 
+                                       C_values.begin()+C_size,
+                                       zeta );
+
+            // Continue if no absorption.
+            if ( new_it != C_values.begin()+C_size )
+            {
+                new_index = std::distance( C_values.begin(), new_it );
+                new_state = C_indices[ new_index ];
 	    
-	    // Get the state components of Q and H.
-	    d_Q.ExtractGlobalRowCopy( state, 
-				      n_Q, 
-				      Q_size, 
-				      &Q_values[0], 
-				      &Q_indices[0] );
+                // Get the state components of Q and H.
+                d_Q.ExtractGlobalRowCopy( state, 
+                                          n_Q, 
+                                          Q_size, 
+                                          &Q_values[0], 
+                                          &Q_indices[0] );
 
-	    d_H.ExtractGlobalRowCopy( new_state, 
-				      n_H, 
-				      H_size, 
-				      &H_values[0], 
-				      &H_indices[0] );
+                d_H.ExtractGlobalRowCopy( new_state, 
+                                          n_H, 
+                                          H_size, 
+                                          &H_values[0], 
+                                          &H_indices[0] );
 
-	    Q_it = std::find( Q_indices.begin(),
-			      Q_indices.begin()+Q_size,
-			      new_state );
+                Q_it = std::find( Q_indices.begin(),
+                                  Q_indices.begin()+Q_size,
+                                  new_state );
 
-	    H_it = std::find( H_indices.begin(),
-			      H_indices.begin()+H_size,
-			      state );
+                H_it = std::find( H_indices.begin(),
+                                  H_indices.begin()+H_size,
+                                  state );
 
-	    // Compute new weight.
-	    if ( Q_values[std::distance(Q_indices.begin(),Q_it)] == 0 ||
-		 Q_it == Q_indices.end() ||
-		 H_it == H_indices.begin()+H_size )
-	    {
-		weight = 0.0;
-	    }
-	    else
-	    {
-		weight *= H_values[std::distance(H_indices.begin(),H_it)] / 
-			  Q_values[std::distance(Q_indices.begin(),Q_it)];
-	    }
+                // Compute new weight.
+                if ( Q_values[std::distance(Q_indices.begin(),Q_it)] == 0 ||
+                     Q_it == Q_indices.end() ||
+                     H_it == H_indices.begin()+H_size )
+                {
+                    weight = 0.0;
+                }
+                else
+                {
+                    weight *= H_values[std::distance(H_indices.begin(),H_it)] / 
+                              Q_values[std::distance(Q_indices.begin(),Q_it)];
+                }
 
-	    if ( weight < relative_cutoff )
-	    {
-		walk = false;
-	    }
+                if ( weight < relative_cutoff )
+                {
+                    walk = false;
+                }
 
-	    // Update the state.
-	    state = new_state;
-	}
+                // Update the state.
+                state = new_state;
+            }
+
+            // Otherwise we are absorbed.
+            else
+            {
+                walk = false;
+            }
+        }
     }
 
     // If using the expected value estimator, add the source.
@@ -254,6 +265,7 @@ Epetra_CrsMatrix AdjointMC::buildQ()
     int H_size = 0;
     double local_Q = 0.0;
     double row_sum = 0.0;
+    double p_abs = 0.1;
     for ( int i = 0; i < N; ++i )
     {
 	d_H.ExtractGlobalRowCopy( i,
@@ -272,7 +284,7 @@ Epetra_CrsMatrix AdjointMC::buildQ()
 	{
 	    if ( row_sum > 0.0 )
 	    {
-		local_Q = std::abs(H_values[j]) / row_sum;
+		local_Q = std::abs(H_values[j]) * (1.0 - p_abs) / row_sum;
 	    }
 	    else
 	    {

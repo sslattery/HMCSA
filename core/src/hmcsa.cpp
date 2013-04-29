@@ -83,8 +83,8 @@ int main( int argc, char** argv )
 
     int max_iters = 1000;
     double tolerance = 1.0e-8;
-    int num_histories =40000;
-    double weight_cutoff = 1.0e-4;
+    int num_histories = 40000;
+    double weight_cutoff = 1.0e-12;
 
     // Setup up a VTK mesh for output.
     HMCSA::VtkWriter vtk_writer( x_min, x_max, y_min, y_max,
