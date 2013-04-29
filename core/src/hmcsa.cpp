@@ -57,14 +57,14 @@ void buildIC( std::vector<double> &source,
 int main( int argc, char** argv )
 {
     // Problem parameters.
-    int xN = 101;
-    int yN = 101;
+    int xN = 201;
+    int yN = 201;
     int problem_size = xN*yN;
 
     double x_min = 0.0;
-    double x_max = 1.0;
+    double x_max = 2.0;
     double y_min = 0.0;
-    double y_max = 1.0;
+    double y_max = 2.0;
 
     double ic_val = 0.0;
     double bc_val_xmin = 0.0;
@@ -83,7 +83,7 @@ int main( int argc, char** argv )
 
     int max_iters = 1000;
     double tolerance = 1.0e-8;
-    int num_histories = 10000;
+    int num_histories =40000;
     double weight_cutoff = 1.0e-4;
 
     // Setup up a VTK mesh for output.

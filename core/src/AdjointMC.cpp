@@ -86,6 +86,7 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
     }
 
     // Do random walks for specified number of histories.
+    bool use_collision_estimator = true;
     for ( int n = 0; n < num_histories; ++n )
     {
 	// Sample the source to get the initial state.
@@ -102,8 +103,27 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 	walk = true;
 	while ( walk )
 	{
-	    // Update LHS.
-	    (*x)[state] += weight_sign * weight / num_histories;
+            // Get the current iteration matrix row.
+	    d_H.ExtractGlobalRowCopy( state, 
+				      n_H, 
+				      H_size, 
+				      &H_values[0], 
+				      &H_indices[0] );
+
+	    // Update LHS with either the collision estimator.
+            if ( use_collision_estimator )
+            {
+                (*x)[state] += weight_sign * weight / num_histories;
+            }
+            // Or the expected value estimator.
+            else
+            {
+                for ( int j = 0; j < H_size; ++j )
+                {
+                    (*x)[ H_indices[j] ] += 
+                        weight_sign * weight * H_values[j] / num_histories;
+                }
+            }
 
 	    // Sample the CDF to get the next state.
 	    d_C.ExtractGlobalRowCopy( state, 
@@ -162,6 +182,12 @@ void AdjointMC::walk( const int num_histories, const double weight_cutoff )
 	    // Update the state.
 	    state = new_state;
 	}
+    }
+
+    // If using the expected value estimator, add the source.
+    if ( !use_collision_estimator )
+    {
+        x->Update( 1.0, *b, 1.0 );
     }
 }
 
